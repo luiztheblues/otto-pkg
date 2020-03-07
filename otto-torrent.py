@@ -13,7 +13,7 @@ Dependências:
  >libtorrent-rasterbar
 
 Sintaxe
-python3.8 otto-torrent.py -f <file>
+python3.? otto-torrent.py -f <file>
 '''
 
 
