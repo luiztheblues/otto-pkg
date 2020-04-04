@@ -1,7 +1,7 @@
 '''
 otto-torrent.py.
 Criado para ser usado no Gerenciador de Pacotes OTTO. 
-Desenvolvido por: Caio Novais e Jazz_Man (pseudônimo)
+Desenvolvido por: Jazz_Man (pseudônimo)
 Adaptado a partir do seguinte exemplo: https://www.libtorrent.org/python_binding.html
 Licença: 
 Copyright © 2020 Projeto Pindorama.
@@ -9,20 +9,18 @@ OTTO_PKG está sobre a Licença BSD Clause-2 (Simplificada).
 
 Dependências:
 
->python 3.4=< 
->libtorrent-rasterbar
+ >python 3.4=< 
+ >libtorrent-rasterbar
 
-Notas para próximas versões:
->ajustar manualmente a prioridade de banda do download;
->começar a se usar link magnético como uma opção para os arquivos .torrent;
->modo para criação de .torrents (acionado via uma flag);
->adicionar suporte à criptografia (se possível);
->criar patch para tradução em inglês e em outros idiomas;
+Sintaxe
+python3.? otto-torrent.py -f <file>
 
-Sintaxe:
-python3.? otto-torrent.py -s -f <file> -o <directory | file-basename>
+Coisas pendentes: 
+ >Ajustar manualmente a prioridade de banda do download;
+ >Usar link magnético ao invés de arquivo;
+ >Criar arquivos .torrent (a partir da chamada mkpkg no Otto.SH); 
+ >Suporte de criptografia (talvez).
 '''
-
 
 import libtorrent as lt
 import argparse, os
@@ -79,3 +77,4 @@ def iniciar_download(arquivo):
         print(">>> Houve algum erro: {}".format(error))
 
 iniciar_download(argumentos.file)
+
