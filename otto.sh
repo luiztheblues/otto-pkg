@@ -11,7 +11,7 @@ export PROG='Otto'
 export VER='0.1.alpha'
 export PKG_FORMT='.otpm' #hu3, essa extensão pode mudar no futuro talvez...
 export PKG_COMPSS='7z' #irei comprimir o código-fonte do pacote e os OttoBuilds.sh usando o 7z, por conta de sua alta-compressão até em binários.
-export HOST_OS=$(uname -s) #Se aparecer "muh GANOO/Lincucks" é por conta de seu sistema usar as coreutils GNU ou por simplesmente autismo da sua distribuição, e não porque o Linux (Kernel) pertenceria ao GNU.
+export HOST_OS=$(uname -s) #Se aparecer "muh GANOO/Lincucks" é por conta de seu sistema usar as coreutils GNU ou por simplesmente autismo de sua distribuição, e não porque o Linux (Kernel) pertence ao GNU.
 #^Dica para os outros desenvolvedores: para variáveis simples como essas- exceto pela última onde estou puxando um subshell-, usem sempre aspas simples. 
 #O motivo eu possivelmente explicarei na documentação, se não alguém o explicará... mas se resume em velocidade na execução.  
 
