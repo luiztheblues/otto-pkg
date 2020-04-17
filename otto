@@ -109,7 +109,7 @@ function info(){
     printf 'Paketformat: '$PKG_FORMT'\n'
     printf "\
 Copyright (c) 2019-2020 Luiz Antonio Rangel von Project Pindorama.
-printf Copyright (c) 2020 Caio Novais von Project Pindorama.
+Copyright (c) 2020 Caio Novais von Project Pindorama.
 "
 exit 0
 }
