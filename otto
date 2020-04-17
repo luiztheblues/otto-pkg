@@ -56,7 +56,7 @@ export HOST_OS=$(uname)
 
 #Carregar biblioteca de variáveis externas, do sistema e do usuário
 #configuradas já na instalação do sistema ou do Otto em si caso for possível:
-if [[ -f $OTTOETC/make.cfg ]] ; then
+if [[ -f $OTTOETC/make.cfg ]]; then
 	source $OTTOETC/make.cfg
 else
 	printf 'make.cfg nao encontrado\n'
@@ -64,7 +64,7 @@ fi
 ############## FUNÇÕES DO SCRIPT ##############
 
 function chkroot(){
-if [[ `id -u` -eq 0 ]] ; then
+if [[ $EUID -ne 0 ]]; then
 	printf 'Login wie root user.\n'
 	exit 1
 fi
