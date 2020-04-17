@@ -114,7 +114,6 @@ Otto 0.1-alpha, ein paketmanager.
 exit 0
 }
 
-#"case"
 case $1 in
 	info*) info "$2" ;;
 	*) ajuda "$2" ;;
