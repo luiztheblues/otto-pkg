@@ -106,11 +106,12 @@ function info(){
     exit 0
 }
 
-function ajuda(){ printf '\
+#Aspas simples não podem ser usadas aqui.
+function ajuda(){ printf "\
 Otto 0.1-alpha, ein paketmanager.
 
 > info - Listar informacoes do programa.
-'
+"
 exit 0
 }
 
