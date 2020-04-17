@@ -36,7 +36,7 @@
 
 #TO DO:
 #Terminar as funções pelo menos.
-#Tentar portar para outros sistemas UNIX no futuro.
+#Portar para outros sistemas UNIX caso for necessário.
 #Otimizar o máximo possível.
 
 ##############################################
@@ -64,7 +64,7 @@ fi
 ############## FUNÇÕES DO SCRIPT ##############
 
 function chkroot(){
-if [ `id -u` -eq 0 ] ; then
+if [[ `id -u` -eq 0 ]] ; then
 	printf 'Login wie root user.\n'
 	exit 1
 fi
@@ -85,12 +85,18 @@ done
 #estou enrolando muito para fazer tudo, eu sei.
 function install(){
     chkroot
+    printf 'Erro: funcao nao implementada.\n'
+    exit 1
 }
 function remove(){
     chkroot
+    printf 'Erro: funcao nao implementada.\n'
+    exit 1
 }
 function upgrade(){
     chkroot
+    printf 'Erro: funcao nao implementada.\n'
+    exit 1
 }
 function mkpkg(){
     printf 'Erro: funcao nao implementada.\n'
@@ -101,16 +107,22 @@ function info(){
     printf 'Otto Paketmanager version: '$VER'\n'
     printf 'Betriebssystem: '$HOST_OS'\n'
     printf 'Paketformat: '$PKG_FORMT'\n'
-    printf 'Copyright (c) 2019-2020 Luiz Antonio Rangel von Project Pindorama.\n'
-    printf 'Copyright (c) 2020 Caio Novais von Project Pindorama.\n'
-    exit 0
+    printf "\
+Copyright (c) 2019-2020 Luiz Antonio Rangel von Project Pindorama.
+printf Copyright (c) 2020 Caio Novais von Project Pindorama.
+"
+exit 0
 }
 
 #Aspas simples não podem ser usadas aqui.
 function ajuda(){ printf "\
 Otto 0.1-alpha, ein paketmanager.
 
+> ajuda - Mostrar essa mensagem de ajuda.
 > info - Listar informacoes do programa.
+> install - Instalar pacote.
+> remove - Remover pacote.
+> upgrade - Atualizar pacote.
 "
 exit 0
 }
@@ -118,7 +130,11 @@ exit 0
 
 ############## CASE DO SCRIPT #################
 case $1 in
+	ajuda*) ajuda "$2" ;;
 	info*) info "$2" ;;
+	install*) install "$2" ;;
+	remove*) remove "$2" ;;
+	upgrade*) upgrade "$2" ;;
 	*) ajuda "$2" ;;
 esac
 ###############################################
