@@ -61,7 +61,7 @@ if [[ -f $OTTOETC/make.cfg ]] ; then
 else
 	printf 'make.cfg nao encontrado\n'
 fi
-############## FUNÇÕES DO SCRIPT #############
+############## FUNÇÕES DO SCRIPT ##############
 
 function chkroot(){
 if [ `id -u` -eq 0 ] ; then
@@ -106,14 +106,16 @@ function info(){
     exit 0
 }
 
-function ajuda(){ printf "\
+function ajuda(){ printf '\
 Otto 0.1-alpha, ein paketmanager.
 
 > info - Listar informacoes do programa.
-"
+'
 exit 0
 }
 
+
+############## CASE DO SCRIPT #################
 case $1 in
 	info*) info "$2" ;;
 	*) ajuda "$2" ;;
