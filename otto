@@ -4,7 +4,7 @@
 
 #BSD 2-Clause License
 
-#Copyright (c) 2019-2020, Luiz Antônio Rangel et Projeto Pindorama
+#Copyright (c) 2019-2020, Luiz Antônio Rangel von Projeto Pindorama
 #All rights reserved.
 #
 #Redistribution and use in source and binary forms, with or without
@@ -100,7 +100,8 @@ function info(){
     printf 'Otto Paketmanager version: '$VER'\n'
     printf 'Betriebssystem: '$HOST_OS'\n'
     printf 'Paketformat: '$PKG_FORMT'\n'
-    printf 'Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.\n'
+    printf 'Copyright (c) 2019-2020 Luiz Antonio Rangel von Project Pindorama.\n'
+    printf 'Copyright (c) 2020 Caio Novais von Project Pindorama.\n'
 }
 
 function ajuda(){ printf "\
