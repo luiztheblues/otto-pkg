@@ -47,7 +47,7 @@ export LC_ALL=C
 
 ##Especificações do Otto no código do Otto:
 export PROG='Otto'
-export VER='0.1-alpha'
+export VER='0.2-alpha'
 export PKG_FORMT='.otpm'
 export PKG_COMPSS='7z'
 export HOST_OS=$(uname)
@@ -111,11 +111,10 @@ function mkpkg(){
     exit 1
 }
 
-function info(){
-    printf "Otto Paketmanager version: $VER\n"
-    printf "Betriebssystem: $HOST_OS\n"
-    printf "Paketformat: $PKG_FORMT\n"
-    printf "\
+function info(){ printf "\
+Otto $VER
+Paketformat $PKG_FORMT
+Betriebssystem: $HOST_OS
 Copyright (c) 2019-2020 Luiz Antonio Rangel von Project Pindorama.
 Copyright (c) 2020 Caio Novais von Project Pindorama.
 "
@@ -123,7 +122,7 @@ exit 0
 }
 
 function ajuda(){ printf "\
-${GREEN}Otto 0.1-alpha, ein paketmanager.$END
+${GREEN}Otto $VER, ein paketmanager.$END
 
 > ajuda   - Mostrar essa mensagem de ajuda.
 > info    - Listar informacoes do programa.
