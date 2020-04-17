@@ -109,7 +109,7 @@ function info(){
     printf 'Paketformat: '$PKG_FORMT'\n'
     printf "\
 Copyright (c) 2019-2020 Luiz Antonio Rangel von Project Pindorama.
-printf Copyright (c) 2020 Caio Novais von Project Pindorama.
+Copyright (c) 2020 Caio Novais von Project Pindorama.
 "
 exit 0
 }
@@ -118,10 +118,10 @@ exit 0
 function ajuda(){ printf "\
 Otto 0.1-alpha, ein paketmanager.
 
-> ajuda - Mostrar essa mensagem de ajuda.
-> info - Listar informacoes do programa.
+> ajuda   - Mostrar essa mensagem de ajuda.
+> info    - Listar informacoes do programa.
 > install - Instalar pacote.
-> remove - Remover pacote.
+> remove  - Remover pacote.
 > upgrade - Atualizar pacote.
 "
 exit 0
