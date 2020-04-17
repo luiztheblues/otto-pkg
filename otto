@@ -51,21 +51,29 @@ export VER='0.1-alpha'
 export PKG_FORMT='.otpm'
 export PKG_COMPSS='7z'
 export HOST_OS=$(uname)
-#^Dica para os outros desenvolvedores: para variáveis simples como essas- exceto pela última onde estou puxando um subshell-, usem sempre aspas simples.
+#^Dica para os outros desenvolvedores: para variáveis simples como essas, exceto pela última onde estou puxando um subshell, usem sempre aspas simples.
 #O motivo eu possivelmente explicarei na documentação, se não alguém o explicará... mas se resume em velocidade na execução.
 
+#Definir cores.
+export RED='\033[31;1m'
+export YELLOW='\033[33;1m'
+export BLUE='\033[34;1m'
+export GREEN='\033[32;1m'
+export END='\033[m'
+
+#Aspas simples não devem ser usadas aqui em diante com o printf.
 #Carregar biblioteca de variáveis externas, do sistema e do usuário
 #configuradas já na instalação do sistema ou do Otto em si caso for possível:
 if [[ -f $OTTOETC/make.cfg ]]; then
 	source $OTTOETC/make.cfg
 else
-	printf 'make.cfg nao encontrado\n'
+	printf "${RED}make.cfg nao foi encontrado$END\n"
 fi
 ############## FUNÇÕES DO SCRIPT ##############
 
 function chkroot(){
 if [[ $EUID -ne 0 ]]; then
-	printf 'Login wie root user.\n'
+	printf "${RED}Login wie root user.$END\n"
 	exit 1
 fi
 }
@@ -74,9 +82,9 @@ function pkgdown(){
 for torrent in $@; do
 	#Estou sem muita certeza do que realmente quero nessa parte...
 	#Velocidade:
-	#pkgnm=$(echo $torrent | cut -d "/" -f 2)
+	#pkgnm=$(printf "$torrent\n" | cut -d "/" -f 2)
 	#...ou desempenho:
-	pkgnm=$(cut -d '/' -f 2 <<< $(echo $torrent))
+	pkgnm=$(cut -d '/' -f 2 <<< $(printf "$torrent\n"))
 	curl $MIRROR/packages/$torrent.otlnk -O /tmp/$pkgnm.torrent
 	sh -c 'python3.8 otto-torrent.py -s -f /tmp/$pkgnm.torrent -d $SRCDIR'
 done
@@ -85,28 +93,28 @@ done
 #estou enrolando muito para fazer tudo, eu sei.
 function install(){
     chkroot
-    printf 'Erro: funcao nao implementada.\n'
+    printf "${RED}Erro:$END funcao nao implementada.\n"
     exit 1
 }
 function remove(){
     chkroot
-    printf 'Erro: funcao nao implementada.\n'
+    printf "${RED}Erro:$END funcao nao implementada.\n"
     exit 1
 }
 function upgrade(){
     chkroot
-    printf 'Erro: funcao nao implementada.\n'
+    printf "${RED}Erro:$END funcao nao implementada.\n"
     exit 1
 }
 function mkpkg(){
-    printf 'Erro: funcao nao implementada.\n'
+    printf "${RED}Erro:$END funcao nao implementada.\n"
     exit 1
 }
 
 function info(){
-    printf 'Otto Paketmanager version: '$VER'\n'
-    printf 'Betriebssystem: '$HOST_OS'\n'
-    printf 'Paketformat: '$PKG_FORMT'\n'
+    printf "Otto Paketmanager version: $VER\n"
+    printf "Betriebssystem: $HOST_OS\n"
+    printf "Paketformat: $PKG_FORMT\n"
     printf "\
 Copyright (c) 2019-2020 Luiz Antonio Rangel von Project Pindorama.
 Copyright (c) 2020 Caio Novais von Project Pindorama.
@@ -114,9 +122,8 @@ Copyright (c) 2020 Caio Novais von Project Pindorama.
 exit 0
 }
 
-#Aspas simples não podem ser usadas aqui.
 function ajuda(){ printf "\
-Otto 0.1-alpha, ein paketmanager.
+${GREEN}Otto 0.1-alpha, ein paketmanager.$END
 
 > ajuda   - Mostrar essa mensagem de ajuda.
 > info    - Listar informacoes do programa.
