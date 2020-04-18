@@ -73,14 +73,14 @@ else
 fi
 ############## FUNÇÕES DO SCRIPT ##############
 
-function chkroot(){
+chkroot(){
 if [[ $EUID -ne 0 ]]; then
 	printf "${RED}Login wie root user.$END\n"
 	exit 1
 fi
 }
 
-function pkgdown(){
+pkgdown(){
 for torrent in $@; do
 	#Estou sem muita certeza do que realmente quero nessa parte...
 	#Velocidade:
@@ -92,7 +92,7 @@ for torrent in $@; do
 done
 }
 
-function compile(){
+compile(){
 if [[ -f configure ]]; then
     ./configure --prefix=/usr
     make install
@@ -102,13 +102,13 @@ fi
 }
 
 #autoclean só pra ter certeza, hu3
-function autoclean(){
+autoclean(){
     chkroot
     printf "Removendo arquivos desnecessários...\n"
     rm -rf $SRCDIR/*
 }
 
-function install(){
+install(){
     chkroot
     pkgdown
     printf "Descompactando $PKGNM$PKG_FORMT...\n"
@@ -128,13 +128,13 @@ function install(){
 }
 
 #estou enrolando muito para fazer tudo, eu sei.
-function remove(){
+remove(){
     chkroot
     printf "${RED}Erro:$END funcao ainda nao implementada.\n"
     exit 1
 }
 
-function update(){
+update(){
     chkroot
     cd $PKGDIR
     curl -O $MIRROR/pkglist$PKG_FORMT
@@ -143,13 +143,13 @@ function update(){
     exit 0
 }
 
-function mkpkg(){
+mkpkg(){
     chkroot
     printf "${RED}Erro:$END funcao ainda nao implementada.\n"
     exit 1
 }
 
-function list(){
+list(){
 if [[ -f $PKGDIR/list ]]; then
     cat $PKGDIR/list
     exit 0
@@ -159,7 +159,7 @@ else
 fi
 }
 
-function info(){ printf "\
+info(){ printf "\
 Otto $VER
 Paketformat $PKG_FORMT
 Betriebssystem: $HOST_OS
@@ -170,7 +170,7 @@ Copyright (c) 2019-2020 Caio Novais.
 exit 0
 }
 
-function help(){ printf "\
+help(){ printf "\
 ${GREEN}Otto $VER, ein paketmanager.$END
 
 > help    - Mostrar essa mensagem de ajuda. Para mais informacoes, leia o manual.
