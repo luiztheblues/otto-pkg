@@ -81,6 +81,13 @@ if [ $(id -u) -ne 0 ]; then
 fi
 }
 
+params(){
+if [ -z "$1" ]; then
+    printf "${RED}ERROR:$END insufficient parameters.\n"
+    exit 1
+fi
+}
+
 pkgdown(){
 for torrent in "$@"; do
 	PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
@@ -99,10 +106,7 @@ autoclean(){
 }
 
 install(){
-    if [ -z "$1" ]; then
-        printf "${RED}ERROR:$END insufficient parameters.\n"
-        exit 1
-    fi
+    params
     chkroot
     pkgdown
     printf "Extracting $PKGNM$PKG_FORMT...\n"
@@ -126,10 +130,7 @@ install(){
 
 #estou enrolando muito para fazer tudo, eu sei.
 remove(){
-    if [ -z "$1" ]; then
-        printf "${RED}ERROR:$END insufficient parameters.\n"
-        exit 1
-    fi
+    params
     chkroot
     printf "${RED}ERROR:$END function not ready yet.\n"
     exit 1
@@ -145,10 +146,7 @@ update(){
 }
 
 mkpkg(){
-    if [ -z "$1" ]; then
-        printf "${RED}ERROR:$END insufficient parameters.\n"
-        exit 1
-    fi
+    params
     chkroot
     printf "${RED}ERROR:$END function not ready yet.\n"
     exit 1
@@ -189,7 +187,7 @@ ${GREEN}Otto $VER, ein paketmanager.$END
 
 > help    - Show this help message.
 > info    - List info about the software.
-> search  - Search for content in otto's files.
+> find    - Search for content in otto's files.
 > dig     - Install package.
 > bury    - Remove package.
 > up2date - Update repository index and packages.
@@ -199,14 +197,10 @@ ${GREEN}Otto $VER, ein paketmanager.$END
 exit 0
 }
 
-search(){
-if [ -n "$1" ]; then
+find(){
+    params
     grep "$1" $(which otto) "$OTTOETC/make.cfg"
     exit 0
-else
-    printf "${RED}ERROR:$END insufficient parameters.\n"
-    exit 1
-fi
 }
 
 ############## FIM DAS FUNCOES ################
@@ -215,7 +209,7 @@ fi
 case $1 in
 	help*) help "$2" ;;
 	info*) info "$2" ;;
-    search*) search "$2" ;;
+    find*) find "$2" ;;
 	dig*) install "$2" ;;
 	bury*) remove "$2" ;;
 	up2date*) update "$2" ;;
