@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env zsh
 # vim: noai:ts=4:sw=4:expandtab
 
 #Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent herunterlädt.
@@ -30,6 +30,7 @@
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #Dependências:
+#ZShell
 #Python 3.{4 or 8}
 #Libtorrent and Libtorrent bindings for Python 3.x
 #CURL
@@ -37,7 +38,7 @@
 
 #TO DO:
 #Terminar as funções pelo menos.
-#Portar para outros sistemas UNIX caso for necessário.
+#Portar para outros sistemas UNIX.
 #Otimizar o máximo possível.
 
 ##############################################
@@ -48,10 +49,10 @@ export LC_ALL=C
 
 ##Especificações do Otto no código do Otto:
 export PROG='Otto'
-export VER='0.5'
+export VER='0.6-alpha'
 export PKG_FORMT='.otpm'
+export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
-export OTTOETC='/etc/otto'
 export HOST_OS=$(uname)
 #^Dica para os outros desenvolvedores: para variáveis simples como essas, exceto pela última onde estou puxando um subshell, usem sempre aspas simples.
 #O motivo eu possivelmente explicarei na documentação, se não alguém o explicará... mas se resume em velocidade na execução.
@@ -66,27 +67,26 @@ export END='\033[m'
 #Aspas simples não devem ser usadas aqui em diante com o printf, o que sera explicado na documentacao.
 #Carregar biblioteca de variáveis externas, do sistema e do usuário
 #configuradas já na instalação do sistema ou do Otto em si caso for possível:
-if [[ -f $OTTOETC/make.cfg ]]; then
-	source $OTTOETC/make.cfg
+if [[ -f $ETCDIR/make.cfg ]]; then
+	source $ETCDIR/make.cfg
 else
-	printf "${RED}make.cfg nao foi encontrado$END\n"
+	printf "${RED}make.cfg nao foi encontrado!$END\n"
+	printf "${RED}Leia a documentacao e crie o arquivo conforme as normas.$END\n"
+	exit 127
 fi
 ############## FUNÇÕES DO SCRIPT ##############
 
 chkroot(){
-if [[ $EUID -ne 0 ]]; then
+if 	[ `id -u` -eq 0 ]; 
+then
 	printf "${RED}Login wie root user.$END\n"
 	exit 1
 fi
 }
 
 pkgdown(){
-for torrent in "$@"; do
-	#Estou sem muita certeza do que realmente quero nessa parte...
-	#Velocidade:
-	#PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
-	#...ou desempenho:
-	PKGNM=$(cut -d '/' -f 2 <<< $(printf "$torrent\n"))
+for TORRENT in "$@"; do
+	PKGNM=$(cut -d '/' -f 2 <<< $(printf "$TORRENT\n"))
 	curl $MIRROR/packages/$torrent.otlnk -O /tmp/$PKGNM.torrent
 	otto-torrent -s -f /tmp/$PKGNM.torrent -d $SRCDIR
 done
@@ -94,7 +94,7 @@ done
 
 compile(){
 if [[ -f configure ]]; then
-    ./configure --prefix=/usr
+    ./configure --prefix=$MKPRFIX
     make install
 else
     make install
@@ -102,32 +102,33 @@ fi
 }
 
 #autoclean só pra ter certeza, hu3
-autoclean(){
-    chkroot
-    printf "Removendo arquivos desnecessários...\n"
-    rm -rf $SRCDIR/*
-}
+#AVISO: Eu penso que isso deveria ficar ao gosto do usuario, Caio...
+#autoclean(){
+#    chkroot
+#    printf "Removendo arquivos desnecessários...\n"
+#    rm -rf $SRCDIR/*
+#}
 
 install(){
     chkroot
     pkgdown
     printf "Descompactando $PKGNM$PKG_FORMT...\n"
     $PKG_COMPSS x $SRCDIR/$PKGNM$PKG_FORMT
-    cd $SRCDIR
+    chdir $SRCDIR
     DIRLIST=$(ls)
     for dir in $DIRLIST; do
-        FIRSTDIR=$(printf "$dir\n" | tr -d '$PKG_FORMT' | awk '{print $1}')
+        #FIRSTDIR=$(printf "$dir\n" | tr -d '$PKG_FORMT' | awk '{print $1}')
+        FIRSTDIR=$(awk '{print $1}' <<< $(tr -d '$PKG_FORMT') <<<  $(printf "$dir\n"))
         cd $FIRSTDIR
         compile
         cd ..
         rm $FIRSTDIR
     done
-    printf "$PKGNM" >> $PKGDIR/list
-    autoclean
+    printf "$PKGNM" >> $ETCDIR/package.installed
+    #autoclean
     exit 0
 }
 
-#estou enrolando muito para fazer tudo, eu sei.
 remove(){
     chkroot
     printf "${RED}Erro:$END funcao ainda nao implementada.\n"
@@ -137,8 +138,8 @@ remove(){
 update(){
     chkroot
     cd $PKGDIR
-    curl -O $MIRROR/pkglist$PKG_FORMT
-    $PKG_COMPSS x pkglist$PKG_FORMT
+    curl -O $MIRROR/pkglist
+    $PKG_COMPSS x pkglist$INDEXFILE
     printf "Lista de pacotes disponíveis atualizado.\n"
     exit 0
 }
@@ -150,8 +151,8 @@ mkpkg(){
 }
 
 list(){
-if [[ -f $PKGDIR/list ]]; then
-    cat $PKGDIR/list
+if [[ -f $ETCDIR/package.installed ]]; then
+    cat $ETCDIR/package.installed
     exit 0
 else
     printf "${RED}Erro:$END lista de pacotes nao encontrada.\n"
@@ -163,7 +164,6 @@ info(){ printf "\
 Otto $VER
 Paketformat $PKG_FORMT
 Betriebssystem: $HOST_OS
-
 Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
 Copyright (c) 2019-2020 Caio Novais.
 "
@@ -172,7 +172,6 @@ exit 0
 
 help(){ printf "\
 ${GREEN}Otto $VER, ein paketmanager.$END
-
 > help    - Mostrar essa mensagem de ajuda. Para mais informacoes, leia o manual.
 > info    - Listar informacoes do programa.
 > dig     - Instalar pacote.
@@ -197,4 +196,3 @@ case $1 in
 	*) help "$2" ;;
 esac
 ############## FIM DO CASE ####################
-
