@@ -148,6 +148,3 @@ case $1 in
 	*) help "$2" ;;
 esac
 ###############################################
-
-> upgrade - Atualizar pacote.
-"
