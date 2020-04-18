@@ -114,9 +114,10 @@ function mkpkg(){
 }
 
 function info(){ printf "\
-Otto Paketmanager version: $VER
+Otto $VER
+Paketformat $PKG_FORMT
 Betriebssystem: $HOST_OS
-Paketformat: $PKG_FORMT
+
 Copyright (c) 2019-2020 Luiz Antonio Rangel von Project Pindorama.
 Copyright (c) 2020 Caio Novais von Project Pindorama.
 "
@@ -130,7 +131,7 @@ ${GREEN}Otto $VER, ein paketmanager.$END
 > info    - Listar informacoes do programa.
 > dig     - Instalar pacote.
 > bury    - Remover pacote.
-> up2date - Atualizar index do repositorio.
+> up2date - Atualizar index do repositorio e pacotes.
 > mkpkg   - Criar pacote.
 "
 exit 0
