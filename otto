@@ -63,13 +63,14 @@ export BLUE='\033[34;1m'
 export GREEN='\033[32;1m'
 export END='\033[m'
 
-#Aspas simples não devem ser usadas aqui em diante com o printf, o que sera explicado na documentacao.
+#Aspas simples não devem ser usadas aqui em diante com o printf, o que será explicado na documentação.
 #Carregar biblioteca de variáveis externas, do sistema e do usuário
 #configuradas já na instalação do sistema ou do Otto em si caso for possível:
 if [ -f "$OTTOETC/make.cfg" ]; then
 	. "$OTTOETC/make.cfg"
 else
-	printf "${RED}make.cfg not found$END\n"
+	printf "${RED}make.cfg not found!$END\n"
+    exit 1
 fi
 ############## FUNÇÕES DO SCRIPT ##############
 
@@ -94,7 +95,7 @@ compile(){
 
 autoclean(){
     printf "Autocleaning...\n"
-    rm -rf "$SRCDIR/*"
+    rm -rf "$SRCDIR/old/*"
 }
 
 install(){
@@ -111,6 +112,7 @@ install(){
         printf "${GREEN}Final size of the build tree: $(du -sh .)$END"
         cd ..
     done
+    cd $SRCDIR; mkdir -p old; mv * old
     printf "$PKGNM" >> $PKGDIR/listinst
     if [ $AUTOCLEAN -e "YES" ]; then
         autoclean
