@@ -81,7 +81,7 @@ fi
 }
 
 pkgdown(){
-for torrent in $@; do
+for torrent in "$@"; do
 	#Estou sem muita certeza do que realmente quero nessa parte...
 	#Velocidade:
 	#PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
