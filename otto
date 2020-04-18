@@ -74,26 +74,28 @@ else
 fi
 ############## FUNÇÕES DO SCRIPT ##############
 
+##Substituições de comandos externos
+#alternativa ao wc -l.
+lines(){
+    while IFS=$(read -r lines) || [ -n "$lines" ]; do
+        lines=$(lines+1)
+    done < "$1"
+}
+
+##Fim das substituições
+
 chkroot(){
 if [ $(id -u) -ne 0 ]; then
 	printf "${RED}Login wie root user.$END\n"
-	exit 1
+	exit 130
 fi
 }
 
 params(){
 if [ -z "$1" ]; then
     printf "${RED}ERROR:$END insufficient parameters.\n"
-    exit 1
+    exit 127
 fi
-}
-
-pkgdown(){
-for torrent in "$@"; do
-	PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
-	curl "$MIRROR/packages/$torrent.otlnk" -O "/tmp/$PKGNM.torrent"
-	otto-torrent -s -f "/tmp/$PKGNM.torrent" -d $SRCDIR
-done
 }
 
 compile(){
@@ -103,6 +105,14 @@ compile(){
 autoclean(){
     printf "Autocleaning...\n"
     rm -rf "$SRCDIR/old/*"
+}
+
+pkgdown(){
+for torrent in "$@"; do
+	PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
+	curl "$MIRROR/packages/$torrent.otlnk" -O "/tmp/$PKGNM.torrent"
+	otto-torrent -s -f "/tmp/$PKGNM.torrent" -d $SRCDIR
+done
 }
 
 install(){
@@ -121,7 +131,7 @@ install(){
         cd ..
     done
     cd $SRCDIR; mkdir -p old; mv * old
-    printf "$PKGNM" >> $PKGDIR/listinst
+    printf "$PKGNM" >> $PKGDIR/package.installed
     if [ $AUTOCLEAN = YES ]; then
         autoclean
     fi
@@ -139,9 +149,9 @@ remove(){
 update(){
     chkroot
     cd $PKGDIR
-    curl -O "$MIRROR/pkglist$PKG_FORMT"
-    $PKG_COMPSS x "pkglist$PKG_FORMT"
-    printf "Online package list updated.\n"
+    curl -O "$MIRROR/pkgindex$PKG_FORMT"
+    $PKG_COMPSS x "pkgindex$PKG_FORMT"
+    printf "Package index updated.\n"
     exit 0
 }
 
@@ -152,17 +162,10 @@ mkpkg(){
     exit 1
 }
 
-#alternativa ao wc -l.
-lines(){
-    while IFS=$(read -r lines) || [ -n "$lines" ]; do
-        lines=$(lines+1)
-    done < "$1"
-}
-
 list(){
-if [ -f "$PKGDIR/listinst" ]; then
-    cat "$PKGDIR/listinst"
-    lines "$PKGDIR/listinst"
+if [ -f "$PKGDIR/package.installed" ]; then
+    cat "$PKGDIR/package.installed"
+    lines "$PKGDIR/package.installed"
     printf '%s\n' "$lines installed packages."
     exit 0
 else
