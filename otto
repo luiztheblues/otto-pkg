@@ -1,10 +1,11 @@
 #!/bin/sh
 
-#Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent herunterlädt.
+# vim: noai:ts=4:sw=4:expandtab
+#Otto-PKG - Ein Paketmanager, der Pakete Ã¼ber BitTorrent herunterlÃ¤dt.
 
-#BSD 2-Clause License
+#:BSD 2-Clause License
 
-#Copyright (c) 2019-2020, Luiz Antônio Rangel von Projeto Pindorama
+#Copyright (c) 2019-2020, Luiz AntÃ´nio Rangel von Projeto Pindorama
 #All rights reserved.
 #
 #Redistribution and use in source and binary forms, with or without
@@ -28,48 +29,48 @@
 #OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#Dependências:
+#DependÃªncias:
 #Python 3.{4 or 8}
 #Libtorrent and Libtorrent bindings for Python 3.x
 #CURL
 #POSIX 7-Zip (p7zip)
 
 #TO DO:
-#Terminar as funções pelo menos.
-#Portar para outros sistemas UNIX caso for necessário.
-#Otimizar o máximo possível.
+#Terminar as funÃ§Ãµes pelo menos.
+#Portar para outros sistemas UNIX caso for necessÃ¡rio.
+#Otimizar o mÃ¡ximo possÃ­vel.
 
 ##############################################
-#"Settar" algumas variáveis para uma execução "perfeita"  do Otto:
-##Exportar as duas variaveis de linguagem como "C" (inglês), para maior performance e velocidade do script. Por isso, acentos não serão usados no output do programa.
+#"Settar" algumas variÃ¡veis para uma execuÃ§Ã£o "perfeita"  do Otto:
+##Exportar as duas variaveis de linguagem como "C" (inglÃªs), para maior performance e velocidade do script. Por isso, acentos nÃ£o serÃ£o usados no output do programa.
 export LANG=C
 export LC_ALL=C
 
-##Especificações do Otto no código do Otto:
+##EspecificaÃ§Ãµes do Otto no cÃ³digo do Otto:
 export PROG='Otto'
-export VER='0.2-alpha'
+export VER='0.3-alpha'
 export PKG_FORMT='.otpm'
 export PKG_COMPSS='7z'
 export HOST_OS=$(uname)
-#^Dica para os outros desenvolvedores: para variáveis simples como essas, exceto pela última onde estou puxando um subshell, usem sempre aspas simples.
-#O motivo eu possivelmente explicarei na documentação, se não alguém o explicará... mas se resume em velocidade na execução.
+#^Dica para os outros desenvolvedores: para variÃ¡veis simples como essas, exceto pela Ãºltima onde estou puxando um subshell, usem sempre aspas simples.
+#O motivo eu possivelmente explicarei na documentaÃ§Ã£o, se nÃ£o alguÃ©m o explicarÃ¡... mas se resume em velocidade na execuÃ§Ã£o.
 
-#Definir cores.
+##Definir cores.
 export RED='\033[31;1m'
 export YELLOW='\033[33;1m'
 export BLUE='\033[34;1m'
 export GREEN='\033[32;1m'
 export END='\033[m'
 
-#Aspas simples não devem ser usadas aqui em diante com o printf.
-#Carregar biblioteca de variáveis externas, do sistema e do usuário
-#configuradas já na instalação do sistema ou do Otto em si caso for possível:
+#Aspas simples nÃ£o devem ser usadas aqui em diante com o printf, o que sera explicado na documentacao.
+#Carregar biblioteca de variÃ¡veis externas, do sistema e do usuÃ¡rio
+#configuradas jÃ¡ na instalaÃ§Ã£o do sistema ou do Otto em si caso for possÃ­vel:
 if [[ -f $OTTOETC/make.cfg ]]; then
 	source $OTTOETC/make.cfg
 else
 	printf "${RED}make.cfg nao foi encontrado$END\n"
 fi
-############## FUNÇÕES DO SCRIPT ##############
+############## FUNÃ‡Ã•ES DO SCRIPT ##############
 
 function chkroot(){
 if [[ $EUID -ne 0 ]]; then
@@ -93,54 +94,60 @@ done
 #estou enrolando muito para fazer tudo, eu sei.
 function install(){
     chkroot
-    printf "${RED}Erro:$END funcao nao implementada.\n"
+    printf "${RED}Erro:$END funcao ainda nao implementada.\n"
     exit 1
 }
 function remove(){
     chkroot
-    printf "${RED}Erro:$END funcao nao implementada.\n"
+    printf "${RED}Erro:$END funcao ainda nao implementada.\n"
     exit 1
 }
-function upgrade(){
+function update(){
     chkroot
-    printf "${RED}Erro:$END funcao nao implementada.\n"
+    printf "${RED}Erro:$END funcao ainda nao implementada.\n"
     exit 1
 }
 function mkpkg(){
-    printf "${RED}Erro:$END funcao nao implementada.\n"
+    printf "${RED}Erro:$END funcao ainda nao implementada.\n"
     exit 1
 }
 
-function info(){ printf "\
-Otto $VER
-Paketformat $PKG_FORMT
-Betriebssystem: $HOST_OS
+function info(){
+    printf "Otto Paketmanager version: $VER\n"
+    printf "Betriebssystem: $HOST_OS\n"
+    printf "Paketformat: $PKG_FORMT\n"
+    printf "\
 Copyright (c) 2019-2020 Luiz Antonio Rangel von Project Pindorama.
 Copyright (c) 2020 Caio Novais von Project Pindorama.
 "
 exit 0
 }
 
-function ajuda(){ printf "\
+function help(){ 
+printf "\
 ${GREEN}Otto $VER, ein paketmanager.$END
 
-> ajuda   - Mostrar essa mensagem de ajuda.
+> help    - Mostrar essa mensagem de ajuda, para mais informacao leia o manual.
 > info    - Listar informacoes do programa.
-> install - Instalar pacote.
-> remove  - Remover pacote.
-> upgrade - Atualizar pacote.
+> dig     - Instalar pacote.
+> bury    - Remover pacote.
+> up2date - Atualizar index do repositorio e pacotes.
+> mkpkg   - Criar pacotes.
 "
 exit 0
 }
-
+############## FIM DAS FUNCOES ################
 
 ############## CASE DO SCRIPT #################
 case $1 in
-	ajuda*) ajuda "$2" ;;
+	help*) help "$2" ;;
 	info*) info "$2" ;;
-	install*) install "$2" ;;
-	remove*) remove "$2" ;;
-	upgrade*) upgrade "$2" ;;
-	*) ajuda "$2" ;;
+	dig*) install "$2" ;;
+	bury*) remove "$2" ;;
+	up2date*) update "$2" ;;
+	*) help "$2" ;;
 esac
 ###############################################
+
+> upgrade - Atualizar pacote.
+"
