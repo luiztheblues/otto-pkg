@@ -101,6 +101,13 @@ else
 fi
 }
 
+#autoclean só pra ter certeza, hu3
+function autoclean(){
+    chkroot
+    printf "Removendo arquivos desnecessários...\n"
+    rm -rf $SRCDIR/*
+}
+
 function install(){
     chkroot
     pkgdown
@@ -109,7 +116,7 @@ function install(){
     cd $SRCDIR
     DIRLIST=$(ls)
     for dir in $DIRLIST; do
-        FIRSTDIR=$(printf "$dir\n" | tr -d $PKG_FORMT | awk '{print $1}')
+        FIRSTDIR=$(printf "$dir\n" | tr -d '$PKG_FORMT' | awk '{print $1}')
         cd $FIRSTDIR
         compile
         cd ..
@@ -150,13 +157,6 @@ else
     printf "${RED}Erro:$END lista de pacotes nao encontrada.\n"
     exit 1
 fi
-}
-
-#autoclean só pra ter certeza, hu3
-function autoclean(){
-    chkroot
-    printf "Removendo arquivos desnecessários...\n"
-    rm -rf $SRCDIR/*
 }
 
 function info(){ printf "\
