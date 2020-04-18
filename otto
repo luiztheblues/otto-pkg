@@ -48,7 +48,7 @@ export LC_ALL=C
 
 ##Especificações do Otto no código do Otto:
 export PROG='Otto'
-export VER='0.5'
+export VER='0.5.1'
 export PKG_FORMT='.otpm'
 export PKG_COMPSS='7z'
 export OTTOETC='/etc/otto'
@@ -66,15 +66,15 @@ export END='\033[m'
 #Aspas simples não devem ser usadas aqui em diante com o printf, o que sera explicado na documentacao.
 #Carregar biblioteca de variáveis externas, do sistema e do usuário
 #configuradas já na instalação do sistema ou do Otto em si caso for possível:
-if [[ -f $OTTOETC/make.cfg ]]; then
-	source $OTTOETC/make.cfg
+if [ -f $OTTOETC/make.cfg ]; then
+	. $OTTOETC/make.cfg
 else
 	printf "${RED}make.cfg nao foi encontrado$END\n"
 fi
 ############## FUNÇÕES DO SCRIPT ##############
 
 chkroot(){
-if [[ $EUID -ne 0 ]]; then
+if [ $(id -u) -ne 0 ]; then
 	printf "${RED}Login wie root user.$END\n"
 	exit 1
 fi
@@ -83,8 +83,8 @@ fi
 pkgdown(){
 for torrent in "$@"; do
 	PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
-	curl $MIRROR/packages/$torrent.otlnk -O /tmp/$PKGNM.torrent
-	otto-torrent -s -f /tmp/$PKGNM.torrent -d $SRCDIR
+	curl "$MIRROR/packages/$torrent.otlnk" -O "/tmp/$PKGNM.torrent"
+	otto-torrent -s -f "/tmp/$PKGNM.torrent" -d $SRCDIR
 done
 }
 
@@ -112,7 +112,7 @@ install(){
         cd ..
     done
     printf "$PKGNM" >> $PKGDIR/list
-    if [[ $AUTOCLEAN -e "YES" ]]; then
+    if [ $AUTOCLEAN -e "YES" ]; then
         autoclean
     fi
     exit 0
@@ -141,7 +141,7 @@ mkpkg(){
 }
 
 list(){
-if [[ -f $PKGDIR/list ]]; then
+if [ -f $PKGDIR/list ]; then
     cat $PKGDIR/list
     exit 0
 else
