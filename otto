@@ -66,10 +66,10 @@ export END='\033[m'
 #Aspas simples não devem ser usadas aqui em diante com o printf, o que sera explicado na documentacao.
 #Carregar biblioteca de variáveis externas, do sistema e do usuário
 #configuradas já na instalação do sistema ou do Otto em si caso for possível:
-if [ -f $OTTOETC/make.cfg ]; then
-	. $OTTOETC/make.cfg
+if [ -f "$OTTOETC/make.cfg" ]; then
+	. "$OTTOETC/make.cfg"
 else
-	printf "${RED}make.cfg nao foi encontrado$END\n"
+	printf "${RED}make.cfg not found$END\n"
 fi
 ############## FUNÇÕES DO SCRIPT ##############
 
@@ -93,15 +93,14 @@ compile(){
 }
 
 autoclean(){
-    chkroot
-    printf "Removendo arquivos desnecessários...\n"
-    rm -rf $SRCDIR/*
+    printf "Autocleaning...\n"
+    rm -rf "$SRCDIR/*"
 }
 
 install(){
     chkroot
     pkgdown
-    printf "Descompactando $PKGNM$PKG_FORMT...\n"
+    printf "Extracting $PKGNM$PKG_FORMT...\n"
     $PKG_COMPSS x $SRCDIR/$PKGNM$PKG_FORMT
     cd $SRCDIR
     DIRLIST=$(ls)
@@ -109,9 +108,10 @@ install(){
         FIRSTDIR=$(printf "$dir\n" | tr -d '$PKG_FORMT' | awk '{print $1}')
         cd $FIRSTDIR
         compile
+        printf "${GREEN}Final size of the build tree: $(du -sh .)$END"
         cd ..
     done
-    printf "$PKGNM" >> $PKGDIR/list
+    printf "$PKGNM" >> $PKGDIR/listinst
     if [ $AUTOCLEAN -e "YES" ]; then
         autoclean
     fi
@@ -121,31 +121,40 @@ install(){
 #estou enrolando muito para fazer tudo, eu sei.
 remove(){
     chkroot
-    printf "${RED}Erro:$END funcao ainda nao implementada.\n"
+    printf "${RED}Error:$END function not ready yet.\n"
     exit 1
 }
 
 update(){
     chkroot
     cd $PKGDIR
-    curl -O $MIRROR/pkglist$PKG_FORMT
-    $PKG_COMPSS x pkglist$PKG_FORMT
-    printf "Lista de pacotes disponíveis atualizado.\n"
+    curl -O "$MIRROR/pkglist$PKG_FORMT"
+    $PKG_COMPSS x "pkglist$PKG_FORMT"
+    printf "Online package list updated.\n"
     exit 0
 }
 
 mkpkg(){
     chkroot
-    printf "${RED}Erro:$END funcao ainda nao implementada.\n"
+    printf "${RED}Error:$END function not ready yet.\n"
     exit 1
 }
 
+#alternativa ao wc -l.
+lines(){
+    while IFS=$(read -r lines) || [ -n "$lines" ]; do
+        lines=$((lines+1))
+    done < "$1"
+}
+
 list(){
-if [ -f $PKGDIR/list ]; then
-    cat $PKGDIR/list
+if [ -f "$PKGDIR/listinst" ]; then
+    cat "$PKGDIR/listinst"
+    lines "$PKGDIR/listinst"
+    printf '%s\n' "$lines installed packages."
     exit 0
 else
-    printf "${RED}Erro:$END lista de pacotes nao encontrada.\n"
+    printf "${RED}Error:$END package list not found.\n"
     exit 1
 fi
 }
@@ -164,13 +173,13 @@ exit 0
 help(){ printf "\
 ${GREEN}Otto $VER, ein paketmanager.$END
 
-> help    - Mostrar essa mensagem de ajuda. Para mais informacoes, leia o manual.
-> info    - Listar informacoes do programa.
-> dig     - Instalar pacote.
-> bury    - Remover pacote.
-> up2date - Atualizar index do repositorio e pacotes.
-> mkpkg   - Criar pacote.
-> list    - Listar pacotes instalados.
+> help    - Show this help message.
+> info    - List info about the software.
+> dig     - Install package.
+> bury    - Remove package.
+> up2date - Update repository index and packages.
+> mkpkg   - Create package.
+> list    - List installed packages.
 "
 exit 0
 }
