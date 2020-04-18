@@ -3,7 +3,7 @@
 
 #Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent herunterlädt.
 
-#:BSD 2-Clause License
+#BSD 2-Clause License
 
 #Copyright (c) 2019-2020, Luiz Antônio Rangel et Projeto Pindorama
 #All rights reserved.
@@ -82,26 +82,16 @@ fi
 
 pkgdown(){
 for torrent in "$@"; do
-	#Estou sem muita certeza do que realmente quero nessa parte...
-	#Velocidade:
-	#PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
-	#...ou desempenho:
-	PKGNM=$(cut -d '/' -f 2 <<< $(printf "$torrent\n"))
+	PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
 	curl $MIRROR/packages/$torrent.otlnk -O /tmp/$PKGNM.torrent
 	otto-torrent -s -f /tmp/$PKGNM.torrent -d $SRCDIR
 done
 }
 
 compile(){
-if [[ -f configure ]]; then
-    ./configure --prefix=/usr
     make install
-else
-    make install
-fi
 }
 
-#autoclean só pra ter certeza, hu3
 autoclean(){
     chkroot
     printf "Removendo arquivos desnecessários...\n"
@@ -120,10 +110,11 @@ install(){
         cd $FIRSTDIR
         compile
         cd ..
-        rm $FIRSTDIR
     done
     printf "$PKGNM" >> $PKGDIR/list
-    autoclean
+    if [[ $AUTOCLEAN -e "YES" ]]; then
+        autoclean
+    fi
     exit 0
 }
 
