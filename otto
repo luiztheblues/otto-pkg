@@ -48,7 +48,7 @@ export LC_ALL=C
 
 ##Especificações do Otto no código do Otto:
 export PROG='Otto'
-export VER='0.5.1'
+export VER='0.5.5'
 export PKG_FORMT='.otpm'
 export PKG_COMPSS='7z'
 export OTTOETC='/etc/otto'
@@ -99,6 +99,10 @@ autoclean(){
 }
 
 install(){
+    if [ -z "$1" ]; then
+        printf "${RED}ERROR:$END insufficient parameters.\n"
+        exit 1
+    fi
     chkroot
     pkgdown
     printf "Extracting $PKGNM$PKG_FORMT...\n"
@@ -114,7 +118,7 @@ install(){
     done
     cd $SRCDIR; mkdir -p old; mv * old
     printf "$PKGNM" >> $PKGDIR/listinst
-    if [ $AUTOCLEAN -e "YES" ]; then
+    if [ $AUTOCLEAN = YES ]; then
         autoclean
     fi
     exit 0
@@ -122,8 +126,12 @@ install(){
 
 #estou enrolando muito para fazer tudo, eu sei.
 remove(){
+    if [ -z "$1" ]; then
+        printf "${RED}ERROR:$END insufficient parameters.\n"
+        exit 1
+    fi
     chkroot
-    printf "${RED}Error:$END function not ready yet.\n"
+    printf "${RED}ERROR:$END function not ready yet.\n"
     exit 1
 }
 
@@ -137,8 +145,12 @@ update(){
 }
 
 mkpkg(){
+    if [ -z "$1" ]; then
+        printf "${RED}ERROR:$END insufficient parameters.\n"
+        exit 1
+    fi
     chkroot
-    printf "${RED}Error:$END function not ready yet.\n"
+    printf "${RED}ERROR:$END function not ready yet.\n"
     exit 1
 }
 
@@ -156,7 +168,7 @@ if [ -f "$PKGDIR/listinst" ]; then
     printf '%s\n' "$lines installed packages."
     exit 0
 else
-    printf "${RED}Error:$END package list not found.\n"
+    printf "${RED}ERROR:$END package list not found.\n"
     exit 1
 fi
 }
@@ -177,6 +189,7 @@ ${GREEN}Otto $VER, ein paketmanager.$END
 
 > help    - Show this help message.
 > info    - List info about the software.
+> search  - Search for content in otto's files.
 > dig     - Install package.
 > bury    - Remove package.
 > up2date - Update repository index and packages.
@@ -185,12 +198,24 @@ ${GREEN}Otto $VER, ein paketmanager.$END
 "
 exit 0
 }
+
+search(){
+if [ -n "$1" ]; then
+    grep "$1" $(which otto) "$OTTOETC/make.cfg"
+    exit 0
+else
+    printf "${RED}ERROR:$END insufficient parameters.\n"
+    exit 1
+fi
+}
+
 ############## FIM DAS FUNCOES ################
 
 ############## CASE DO SCRIPT #################
 case $1 in
 	help*) help "$2" ;;
 	info*) info "$2" ;;
+    search*) search "$2" ;;
 	dig*) install "$2" ;;
 	bury*) remove "$2" ;;
 	up2date*) update "$2" ;;
