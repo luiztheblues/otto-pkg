@@ -1,6 +1,6 @@
 #!/bin/sh
-
 # vim: noai:ts=4:sw=4:expandtab
+
 #Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent herunterlädt.
 
 #:BSD 2-Clause License
@@ -108,31 +108,30 @@ function update(){
     exit 1
 }
 function mkpkg(){
+    chkroot
     printf "${RED}Erro:$END funcao ainda nao implementada.\n"
     exit 1
 }
 
-function info(){
-    printf "Otto Paketmanager version: $VER\n"
-    printf "Betriebssystem: $HOST_OS\n"
-    printf "Paketformat: $PKG_FORMT\n"
-    printf "\
+function info(){ printf "\
+Otto Paketmanager version: $VER
+Betriebssystem: $HOST_OS
+Paketformat: $PKG_FORMT
 Copyright (c) 2019-2020 Luiz Antonio Rangel von Project Pindorama.
 Copyright (c) 2020 Caio Novais von Project Pindorama.
 "
 exit 0
 }
 
-function help(){ 
-printf "\
+function help(){ printf "\
 ${GREEN}Otto $VER, ein paketmanager.$END
 
-> help    - Mostrar essa mensagem de ajuda, para mais informacao leia o manual.
+> help    - Mostrar essa mensagem de ajuda. Para mais informacoes, leia o manual.
 > info    - Listar informacoes do programa.
 > dig     - Instalar pacote.
 > bury    - Remover pacote.
-> up2date - Atualizar index do repositorio e pacotes.
-> mkpkg   - Criar pacotes.
+> up2date - Atualizar index do repositorio.
+> mkpkg   - Criar pacote.
 "
 exit 0
 }
@@ -145,6 +144,7 @@ case $1 in
 	dig*) install "$2" ;;
 	bury*) remove "$2" ;;
 	up2date*) update "$2" ;;
+	mkpkg*) mkpkg "$2" ;;
 	*) help "$2" ;;
 esac
-###############################################
+############## FIM DO CASE ####################
