@@ -86,8 +86,8 @@ lines(){
 
 chkroot(){
 if [ $(id -u) -ne 0 ]; then
-	printf "${RED}Login wie root user.$END\n"
-	exit 130
+    printf "${RED}Login wie root user.$END\n"
+    exit 130
 fi
 }
 
@@ -109,9 +109,9 @@ autoclean(){
 
 pkgdown(){
 for torrent in "$@"; do
-	PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
-	curl "$MIRROR/packages/$torrent.otlnk" -O "/tmp/$PKGNM.torrent"
-	otto-torrent -s -f "/tmp/$PKGNM.torrent" -d $SRCDIR
+    PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
+    curl "$MIRROR/packages/$torrent.otlnk" -O "/tmp/$PKGNM.torrent"
+    otto-torrent -s -f "/tmp/$PKGNM.torrent" -d $SRCDIR
 done
 }
 
@@ -212,12 +212,12 @@ find(){
 case $1 in
 	help*) help "$2" ;;
 	info*) info "$2" ;;
-    find*) find "$2" ;;
+        find*) find "$2" ;;
 	dig*) install "$2" ;;
 	bury*) remove "$2" ;;
 	up2date*) update "$2" ;;
 	mkpkg*) mkpkg "$2" ;;
-    list*) list "$2" ;;
+        list*) list "$2" ;;
 	*) help "$2" ;;
 esac
 ############## FIM DO CASE ####################
