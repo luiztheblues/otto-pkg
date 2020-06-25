@@ -1,88 +1,85 @@
 #!/usr/bin/env sh
 # vim: noai:ts=4:sw=4:expandtab
 
-#Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent herunterlädt.
+# Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent herunterlädt.
 
-#BSD 2-Clause License
+# BSD 2-Clause License
 
-#Copyright (c) 2019-2020, Luiz Antônio Rangel et Projeto Pindorama
-#All rights reserved.
+# Copyright (c) 2019-2020, Luiz Antônio Rangel et Projeto Pindorama
+# All rights reserved.
 #
-#Redistribution and use in source and binary forms, with or without
-#modification, are permitted provided that the following conditions are met:
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-#1. Redistributions of source code must retain the above copyright notice, this
-#   list of conditions and the following disclaimer.
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
 #
-#2. Redistributions in binary form must reproduce the above copyright notice,
-#   this list of conditions and the following disclaimer in the documentation
-#   and/or other materials provided with the distribution.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
 #
-#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-#AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-#IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-#DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-#FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-#DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-#SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-#CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-#OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-#OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#Dependências:
-#Python 3.{4 or 8}
-#Libtorrent and Libtorrent bindings for Python 3.x
-#CURL
-#POSIX 7-Zip (p7zip)
+# Dependências:
+# Python 3.[4,8]
+# Libtorrent and Libtorrent bindings for Python 3.x
+# CURL
+# POSIX 7-Zip (p7zip)
 
-#TO DO:
-#Terminar as funções pelo menos.
-#Portar para outros sistemas UNIX caso for necessário.
-#Otimizar o máximo possível.
+# TO DO:
+# Terminar as funções pelo menos.
+# Otimizar o máximo possível.
 
 ##############################################
-#"Settar" algumas variáveis para uma execução "perfeita"  do Otto:
-##Exportar as duas variaveis de linguagem como "C" (inglês), para maior performance e velocidade do script. Por isso, acentos não serão usados no output do programa.
+# "Settar" algumas variáveis para uma execução "perfeita"  do Otto:
+## Exportar as duas variaveis de linguagem como "C" (inglês), para maior performance e velocidade do script. Por isso, acentos não serão usados no output do programa.
 export LANG=C
 export LC_ALL=C
 
-##Especificações do Otto no código do Otto:
+## Exportar o alias para o chdir
+# Isso deve ser comentado em Shells que já tenham o chdir como comando nativo.
+alias chdir='cd'
+
+## Especificações do Otto no código do Otto:
 export PROG='Otto'
 export VER='0.5.5'
 export PKG_FORMT='.otpm'
+export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
 export OTTOETC='/etc/otto'
 export HOST_OS=$(uname)
-#^Dica para os outros desenvolvedores: para variáveis simples como essas, exceto pela última onde estou puxando um subshell, usem sempre aspas simples.
-#O motivo eu possivelmente explicarei na documentação, se não alguém o explicará... mas se resume em velocidade na execução.
+# ^Dica para os outros desenvolvedores: para variáveis simples como essas, exceto pela última onde estou puxando um subshell, usem sempre aspas simples.
+# O motivo eu possivelmente explicarei na documentação, se não alguém o explicará... mas se resume em velocidade na execução.
 
-##Definir cores.
+## Definir cores.
 export RED='\033[31;1m'
 export YELLOW='\033[33;1m'
 export BLUE='\033[34;1m'
 export GREEN='\033[32;1m'
 export END='\033[m'
 
-#Aspas simples não devem ser usadas aqui em diante com o printf, o que será explicado na documentação.
-#Carregar biblioteca de variáveis externas, do sistema e do usuário
-#configuradas já na instalação do sistema ou do Otto em si caso for possível:
+# Carregar biblioteca de variáveis externas, do sistema e do usuário
+# configuradas já na instalação do sistema ou do Otto em si caso for possível:
 if [ -f "$OTTOETC/make.cfg" ]; then
 	. "$OTTOETC/make.cfg"
 else
 	printf "${RED}make.cfg not found!$END\n"
+	printf "${YELLOW}Copy this file from the installation media and configure it.$END\n"
     exit 1
 fi
-############## FUNÇÕES DO SCRIPT ##############
+############## Script Functions ##############
 
-##Substituições de comandos externos
-#alternativa ao wc -l.
-lines(){
-    while IFS=$(read -r lines) || [ -n "$lines" ]; do
-        lines=$(lines+1)
-    done < "$1"
-}
-
-##Fim das substituições
+# POSIX alternatives
+. /usr/lib/otto/posix-alt
 
 chkroot(){
 if [ $(id -u) -ne 0 ]; then
@@ -93,83 +90,78 @@ fi
 
 params(){
 if [ -z "$1" ]; then
-    printf "${RED}ERROR:$END insufficient parameters.\n"
+    printf "${RED}ERROR:$END Insufficient parameters.\n"
     exit 127
 fi
 }
 
-compile(){
-    make install
+chkdsk(){
+# Funções realmente ruins.
+# Melhorar depois.
+    VERFDSK=$(df -h -m / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '14')
+    BENUTZT=$(df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '11')
+    GROSSEDSK=$(df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '8')
+    
+}
+
+build(){
+  
 }
 
 autoclean(){
-    printf "Autocleaning...\n"
-    rm -rf "$SRCDIR/old/*"
+    printf "Autocleaning...\n" ; rm -ri "$SRCDIR/old/*"
 }
 
 pkgdown(){
 for torrent in "$@"; do
     PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
-    curl "$MIRROR/packages/$torrent.otlnk" -O "/tmp/$PKGNM.torrent"
-    otto-torrent -s -f "/tmp/$PKGNM.torrent" -d $SRCDIR
+    /usr/bin/otto-torrent -s -f "/usr/otto/db/$torrent.obuild" -d $SRCDIR
 done
 }
 
 install(){
-    params
-    chkroot
-    pkgdown
+    params && chkroot && pkgdown
     printf "Extracting $PKGNM$PKG_FORMT...\n"
-    $PKG_COMPSS x "$SRCDIR/$PKGNM$PKG_FORMT"
-    cd $SRCDIR
+    $PKG_COMPSS x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
+    chdir $SRCDIR
     DIRLIST=$(ls)
     for dir in $DIRLIST; do
         FIRSTDIR=$(printf "$dir\n" | tr -d '$PKG_FORMT' | awk '{print $1}')
-        cd $FIRSTDIR
+        chdir $FIRSTDIR
         compile
         printf "${GREEN}Final size of the build tree: $(du -sh .)$END"
-        cd ..
+        chdir ..
     done
-    cd $SRCDIR; mkdir -p old; mv * old
+    chdir $SRCDIR; mkdir -p old; mv * old
     printf "$PKGNM" >> $PKGDIR/package.installed
-    if [ $AUTOCLEAN = YES ]; then
-        autoclean
-    fi
+    [ $AUTOCLEAN = YES ] && autoclean
     exit 0
 }
 
-#estou enrolando muito para fazer tudo, eu sei.
 remove(){
-    params
-    chkroot
+    params && chkroot
     printf "${RED}ERROR:$END function not ready yet.\n"
     exit 1
 }
 
 update(){
     chkroot
-    cd $PKGDIR
-    curl -O "$MIRROR/pkgindex$PKG_FORMT"
+    chdir $OTTOETC
+    curl -OD -# "$MIRROR/pkgindex$INDEXFILE"
     $PKG_COMPSS x "pkgindex$PKG_FORMT"
     printf "Package index updated.\n"
     exit 0
 }
 
-mkpkg(){
-    params
-    chkroot
-    printf "${RED}ERROR:$END function not ready yet.\n"
-    exit 1
-}
-
 list(){
-if [ -f "$PKGDIR/package.installed" ]; then
-    cat "$PKGDIR/package.installed"
-    lines "$PKGDIR/package.installed"
+if [ -f "$OTTOETC/package.installed" ]; then
+    pcat "$OTTOETC/package.installed"
+    lines "$OTTOETC/package.installed"
     printf '%s\n' "$lines installed packages."
     exit 0
 else
-    printf "${RED}ERROR:$END package list not found.\n"
+    printf "${RED}ERROR:$END package list not found, creating a empty file now.\n"
+    > $OTTOETC/package.installed 
     exit 1
 fi
 }
@@ -179,8 +171,7 @@ Otto $VER
 Paketformat $PKG_FORMT
 Betriebssystem: $HOST_OS
 
-Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
-Copyright (c) 2019-2020 Caio Novais.
+Copyright (c) 2019-2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
 "
 exit 0
 }
@@ -194,7 +185,6 @@ ${GREEN}Otto $VER, ein paketmanager.$END
 > dig     - Install package.
 > bury    - Remove package.
 > up2date - Update repository index and packages.
-> mkpkg   - Create package.
 > list    - List installed packages.
 "
 exit 0
