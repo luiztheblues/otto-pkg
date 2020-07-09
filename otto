@@ -83,10 +83,12 @@ if [ $(id -u) -ne 0 ]; then
     printf "Alright, exiting."
     exit 130
     else
-    export USRDIR=${HIUSR} 
+	export USRDIR=${HIUSR}
+	export USRBIN=${HIUSRBIN}
     fi
 else
     export USRDIR=${LOUSR}
+    export USRBIN=${LOUSRBIN}
 fi
 }
 
@@ -98,8 +100,7 @@ fi
 }
 
 chkdsk(){
-# Funções realmente ruins.
-# Melhorar depois.
+# Really bad functions made to take the disk space value, change it later.
     VERFDSK=$(df -h -m / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '14')
     BENUTZT=$(df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '11')
     GROSSEDSK=$(df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '8')
@@ -133,6 +134,7 @@ pkgdown(){
     done
 }
 
+# Rewrite this.
 #install(){
 #    params && chkroot && pkgdown
 #    printf "Extracting $PKGNM$PKG_FORMT...\n"
@@ -166,9 +168,13 @@ update(){
     chkroot
     chdir $OTTOETC
     curl -OD -# "$MIRROR/pkgindex$INDEXFILE"
-    $PKG_COMPSS x "pkgindex$PKG_FORMT"
+    $PKG_COMPSS x "pkgindex$INDEXFILE"
     printf "Package index updated.\n"
     exit 0
+}
+
+mkpkg(){
+    
 }
 
 list(){
@@ -199,7 +205,7 @@ ${GREEN}Otto $VER, ein paketmanager.$END
 
 > help    - Show this help message.
 > info    - List info about the software.
-> find    - Search for content in otto's files.
+> find    - Search for content in Otto's files.
 > dig     - Install package.
 > bury    - Remove package.
 > up2date - Update repository index and packages.
