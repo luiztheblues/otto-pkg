@@ -51,21 +51,17 @@ alias chdir='cd'
 
 ## Especificações do Otto no código do Otto:
 export PROG='Otto'
-export VER='0.5.5'
-export PKG_FORMT='.otpm'
+export VER='1.0.0'
+export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
 export OTTOETC='/etc/otto'
-export HOST_OS=$(uname)
-# ^Dica para os outros desenvolvedores: para variáveis simples como essas, exceto pela última onde estou puxando um subshell, usem sempre aspas simples.
-# O motivo eu possivelmente explicarei na documentação, se não alguém o explicará... mas se resume em velocidade na execução.
+export HOST_OS=${HKERNEL}
 
-## Definir cores.
-export RED='\033[31;1m'
-export YELLOW='\033[33;1m'
-export BLUE='\033[34;1m'
-export GREEN='\033[32;1m'
-export END='\033[m'
+############## Include Files ##############
+. /usr/lib/otto/colors.i
+. /usr/lib/otto/txtampel.i
+. /usr/lib/otto/posix-alt.i
 
 # Carregar biblioteca de variáveis externas, do sistema e do usuário
 # configuradas já na instalação do sistema ou do Otto em si caso for possível:
@@ -73,18 +69,24 @@ if [ -f "$OTTOETC/make.cfg" ]; then
 	. "$OTTOETC/make.cfg"
 else
 	printf "${RED}make.cfg not found!$END\n"
-	printf "${YELLOW}Copy this file from the installation media and configure it.$END\n"
+	printf "${YELLOW}Copy this file from the installation media (or download it from the offcial repo) and configure it.$END\n"
     exit 1
 fi
 ############## Script Functions ##############
 
-# POSIX alternatives
-. /usr/lib/otto/posix-alt
-
 chkroot(){
 if [ $(id -u) -ne 0 ]; then
-    printf "${RED}Login wie root user.$END\n"
+    printf "It's looks like that you isn't logged in toor nor root user...\n"
+    printf "Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n"
+    read antworten
+    if echo "$antworten" | grep -iq "^n" ;then
+    printf "Alright, exiting."
     exit 130
+    else
+    export USRDIR=${HIUSR} 
+    fi
+else
+    export USRDIR=${LOUSR}
 fi
 }
 
@@ -104,8 +106,20 @@ chkdsk(){
     
 }
 
+uncompress(){
+    ampel=(
+	"Extracting $PKGNM$PKG_FORMT."
+	"Extracting $PKGNM$PKG_FORMT.."
+	"Extracting $PKGNM$PKG_FORMT..."
+    )
+
+    txtampel &
+    /usr/bin/7z x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
+    kill $AMPID
+}
+
 build(){
-  
+    
 }
 
 autoclean(){
@@ -113,29 +127,33 @@ autoclean(){
 }
 
 pkgdown(){
-for torrent in "$@"; do
-    PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
-    /usr/bin/otto-torrent -s -f "/usr/otto/db/$torrent.obuild" -d $SRCDIR
-done
+    for torrent in "$@"; do
+	PKGNM=$(printf "$torrent\n" | cut -d "/" -f 2)
+	/usr/bin/otto-torrent -s -f "/usr/otto/db/$torrent.otlink" -d $SRCDIR
+    done
 }
 
+#install(){
+#    params && chkroot && pkgdown
+#    printf "Extracting $PKGNM$PKG_FORMT...\n"
+#    /usr/bin/7z x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
+#    chdir $SRCDIR
+#    DIRLIST=$(ls)
+#    for dir in $DIRLIST; do
+#        FIRSTDIR=$(printf "$dir\n" | tr -d '$PKG_FORMT' | awk '{print $1}')
+#        chdir $FIRSTDIR
+#        compile
+#        printf "${GREEN}Final size of the build tree: $(du -sh .)$END"
+#        chdir ..
+#    done
+#    chdir $SRCDIR; mkdir -p old; mv * old
+#    printf "$PKGNM" >> $PKGDIR/package.installed
+#    [ $AUTOCLEAN = YES ] && autoclean
+#    exit 0
+#}
+
 install(){
-    params && chkroot && pkgdown
-    printf "Extracting $PKGNM$PKG_FORMT...\n"
-    $PKG_COMPSS x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
-    chdir $SRCDIR
-    DIRLIST=$(ls)
-    for dir in $DIRLIST; do
-        FIRSTDIR=$(printf "$dir\n" | tr -d '$PKG_FORMT' | awk '{print $1}')
-        chdir $FIRSTDIR
-        compile
-        printf "${GREEN}Final size of the build tree: $(du -sh .)$END"
-        chdir ..
-    done
-    chdir $SRCDIR; mkdir -p old; mv * old
-    printf "$PKGNM" >> $PKGDIR/package.installed
-    [ $AUTOCLEAN = YES ] && autoclean
-    exit 0
+    
 }
 
 remove(){
@@ -185,6 +203,7 @@ ${GREEN}Otto $VER, ein paketmanager.$END
 > dig     - Install package.
 > bury    - Remove package.
 > up2date - Update repository index and packages.
+> mkpkg   - Build a package (using source code or binaries). 
 > list    - List installed packages.
 "
 exit 0
