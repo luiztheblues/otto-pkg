@@ -108,7 +108,7 @@ then
 else
     kill $WAITPID
     printf "[ ${RED}FAILED$END ]\n"
-    printf "Apparently, this box ${BLK_RED}isn't connected$BLK_END to the World Wide Web.\n
+    printf "Apparently, this box ${RED}isn't connected$END to the World Wide Web.\n
     If you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains the source-code/program files and a build/install file), save it in a diskette, CD, SDCard or USB and install it using ${YELLOW}otto dig -raw$END.\n
     If you expected to have networking on this box, ${BLK_RED}do some checks$BLK_END. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
 }
