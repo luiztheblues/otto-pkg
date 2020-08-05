@@ -80,7 +80,7 @@ fi
 ############## ARE YA CHECKING SON? #########
 chkroot(){
 if [ $(id -u) -ne 0 ]; then
-    printf "It looks like you aren't logged into toor nor root user...\n"
+    printf "It looks like you aren't logged into ${YELLOW}toor$END nor ${YELLOW}root$END user...\n"
     printf "Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n"
     read ANTWORTEN
     if echo "$ANTWORTEN" | pgrep -iq "^n" ;then
@@ -89,10 +89,12 @@ if [ $(id -u) -ne 0 ]; then
     else
 	   export USRDIR=${HIUSR}
 	   export USRBIN=${HIUSRBIN}
+	   export ETC=${HIETC}
     fi
 else
     export USRDIR=${LOUSR}
     export USRBIN=${LOUSRBIN}
+    export ETC=${LOETC}
 fi
 }
 
