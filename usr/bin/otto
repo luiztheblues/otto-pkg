@@ -29,27 +29,29 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Dependências:
+#############    Depends    ###############
 # Python 3.[4,8]
 # Libtorrent and Libtorrent bindings for Python 3.x
 # CURL
 # POSIX 7-Zip (p7zip)
+##############     END       ##############
 
 # TO DO:
 # Terminar as funções pelo menos.
 # Otimizar o máximo possível.
 
-##############################################
-# "Settar" algumas variáveis para uma execução "perfeita"  do Otto:
-## Exportar as duas variaveis de linguagem como "C" (inglês), para maior performance e velocidade do script. Por isso, acentos não serão usados no output do programa.
+
+############# Export C locale #############
 export LANG=C
 export LC_ALL=${LANG}
+##############     END       ##############
 
-## Exportar o alias para o chdir
+############# Export chdir alias ########## 
 # Isso deve ser comentado em Shells que já tenham o chdir como comando nativo.
 alias chdir='cd'
+##############     END       ##############
 
-## Especificações do Otto no código do Otto:
+############# Program Specifications ######
 export PROG='Otto'
 export VER='1.0.0'
 export PKG_FORMT='.psl'
@@ -57,6 +59,7 @@ export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
 export OTTOETC='/etc/otto'
 export HOST_OS=${HKERNEL}
+##############     END       ##############
 
 ############## Include Files ##############
 . /usr/lib/otto/colors.i
@@ -113,7 +116,7 @@ else
     If you expected to have networking on this box, ${BLK_RED}do some checks$BLK_END. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
 }
 fi
-############## Sure i am, dad.
+##############  Sure i am, dad.  ############
 
 params(){
 if [ -z "$1" ]; then
@@ -208,10 +211,8 @@ if [ -f "$OTTOETC/package.installed" ]; then
     printf '%s\n' "$lines installed packages."
     exit 0
 else
-    printf "${RED}ERROR:$END package list not found, please copy it from the installation media.\n
-    It contains the name of the base packages that will need to be updated and listed later.\n
-    Mount the installation media (@ /mnt) and copy the ${YELLOW}package.installed$END file to $OTTOETC/package.installed.\n"
-    exit 1
+    printf "${BLK_RED}ERROR:$BLK_END package list not found!.\n
+    exit 128+n
 fi
 }
 
@@ -255,7 +256,7 @@ find(){
     exit 0
 }
 
-############## FIM DAS FUNCOES ################
+##############     END      #################
 
 ############## CASE DO SCRIPT #################
 case $1 in
