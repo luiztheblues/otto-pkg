@@ -43,7 +43,7 @@
 # "Settar" algumas variáveis para uma execução "perfeita"  do Otto:
 ## Exportar as duas variaveis de linguagem como "C" (inglês), para maior performance e velocidade do script. Por isso, acentos não serão usados no output do programa.
 export LANG=C
-export LC_ALL=C
+export LC_ALL=${LANG}
 
 ## Exportar o alias para o chdir
 # Isso deve ser comentado em Shells que já tenham o chdir como comando nativo.
@@ -60,11 +60,13 @@ export HOST_OS=${HKERNEL}
 
 ############## Include Files ##############
 . /usr/lib/otto/colors.i
+. /usr/lib/otto/blink.i
 . /usr/lib/otto/txtampel.i
+. /usr/lib/otto/txtwait.i
 . /usr/lib/otto/posix-alt.i
+##############     END       ##############
 
-# Carregar biblioteca de variáveis externas, do sistema e do usuário
-# configuradas já na instalação do sistema ou do Otto em si caso for possível:
+# Load the configuration file:
 if [ -f "$OTTOETC/make.cfg" ]; then
 	. "$OTTOETC/make.cfg"
 else
@@ -74,23 +76,42 @@ else
 fi
 ############## Script Functions ##############
 
+
+############## ARE YA CHECKING SON? #########
 chkroot(){
 if [ $(id -u) -ne 0 ]; then
-    printf "It's looks like that you isn't logged in toor nor root user...\n"
+    printf "It looks like you aren't logged into toor nor root user...\n"
     printf "Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n"
-    read antworten
-    if echo "$antworten" | grep -iq "^n" ;then
-    printf "Alright, exiting."
-    exit 130
+    read ANTWORTEN
+    if echo "$ANTWORTEN" | pgrep -iq "^n" ;then
+        printf "Alright, exiting."
+        exit 130
     else
-	export USRDIR=${HIUSR}
-	export USRBIN=${HIUSRBIN}
+	   export USRDIR=${HIUSR}
+	   export USRBIN=${HIUSRBIN}
     fi
 else
     export USRDIR=${LOUSR}
     export USRBIN=${LOUSRBIN}
 fi
 }
+
+chknet(){
+    printf "Checking network connection"
+    txtwait
+if printf "GET luiznet.tk HTTP/1.0\n\n" | netcat luiznet.tk 80 > /dev/null 2>&1
+then
+    kill $WAITPID
+    printf "[ ${GREEN}OK$END ]\n"
+else
+    kill $WAITPID
+    printf "[ ${RED}FAILED$END ]\n"
+    printf "Apparently, this box ${BLK_RED}isn't connected$BLK_END to the World Wide Web.\n
+    If you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains the source-code/program files and a build/install file), save it in a diskette, CD, SDCard or USB and install it using ${YELLOW}otto dig -raw$END.\n
+    If you expected to have networking on this box, ${BLK_RED}do some checks$BLK_END. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
+}
+fi
+############## Sure i am, dad.
 
 params(){
 if [ -z "$1" ]; then
@@ -108,19 +129,18 @@ chkdsk(){
 }
 
 uncompress(){
-    ampel=(
+    AMPEL=(
 	"Extracting $PKGNM$PKG_FORMT."
 	"Extracting $PKGNM$PKG_FORMT.."
 	"Extracting $PKGNM$PKG_FORMT..."
     )
-
-    txtampel &
+    txtampel
     /usr/bin/7z x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
     kill $AMPID
 }
 
 build(){
-    
+sh $PKGNM.otbuild    
 }
 
 autoclean(){
@@ -155,7 +175,9 @@ pkgdown(){
 #}
 
 install(){
-    
+    params && chkroot && pkgdown
+    uncompress
+
 }
 
 remove(){
@@ -184,23 +206,31 @@ if [ -f "$OTTOETC/package.installed" ]; then
     printf '%s\n' "$lines installed packages."
     exit 0
 else
-    printf "${RED}ERROR:$END package list not found, creating a empty file now.\n"
-    > $OTTOETC/package.installed 
+    printf "${RED}ERROR:$END package list not found, please copy it from the installation media.\n
+    It contains the name of the base packages that will need to be updated and listed later.\n
+    Mount the installation media (@ /mnt) and copy the ${YELLOW}package.installed$END file to $OTTOETC/package.installed.\n"
     exit 1
 fi
 }
 
 info(){ printf "\
-Otto $VER
+Otto-PKG $VER
 Paketformat $PKG_FORMT
 Betriebssystem: $HOST_OS
 
 Copyright (c) 2019-2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
+
+lib-txtampel und lib-posixalt (@ ${LOUSR}/lib/otto) 
+Copyright (c) 2019-2020 Jefferson Rocha et MazonOS Team. 
+Copyright (c) 2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
 "
 exit 0
 }
 
-help(){ printf "\
+help(){
+    export LANG=en_US.UTF-8
+    export LC_ALL=${LANG}
+    printf "\
 ${GREEN}Otto $VER, ein paketmanager.$END
 
 > help    - Show this help message.
@@ -211,6 +241,8 @@ ${GREEN}Otto $VER, ein paketmanager.$END
 > up2date - Update repository index and packages.
 > mkpkg   - Build a package (using source code or binaries). 
 > list    - List installed packages.
+
+✠ GOTT MIT UNS ✠
 "
 exit 0
 }
