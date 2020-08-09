@@ -160,7 +160,7 @@ pkgdown(){
 	#or, a more portable alternative
 	#PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f `printf "$TORRENT\n" | grep -o '/' | wc -l`)
 	PKGNM=`printf "$TORRENT\n" | cut -d "/" -f 2`
-	/usr/bin/otto-torrent -s -f "/usr/otto/db/$TORRENT.otlink" -d $SRCDIR
+	/usr/bin/pico-torrent -s -f "/usr/otto/db/$TORRENT.otlink" -d $SRCDIR
     done
 }
 
