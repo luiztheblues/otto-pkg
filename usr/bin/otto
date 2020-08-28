@@ -46,7 +46,7 @@ export LANG=C
 export LC_ALL=${LANG}
 ##############     END       ##############
 
-############# Export chdir alias ########## 
+############# Export chdir alias ##########
 # This shall be commented when /bin/sh already has a native "chdir" command/system call.
 alias chdir='cd'
 ##############     END       ##############
@@ -82,9 +82,9 @@ fi
 
 ############## ARE YA CHECKING SON? #########
 chkroot(){
-if [ $(id -u) -ne 0 ]; then
+if [ "$(id -u)" -ne 0 ]; then
     printf "It looks like you are not logged into ${YELLOW}toor$END nor ${YELLOW}root$END user...\n Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n ${BLK_RED}WARNING:$END Some packages cannot be installed on the highest userland layer under any circunstances.\n"
-    read ANTWORTEN
+    read -r ANTWORTEN
     if echo "$ANTWORTEN" | pgrep -iq "^n" ;then
         printf "Alright, exiting."
         exit 130
@@ -113,8 +113,8 @@ else
     printf "Apparently, this box ${RED}isn't connected$END to the World Wide Web.\a\n
     If you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains the source-code/program files and a build/install file), save it in a diskette, CD, SDCard or USB and install it using ${YELLOW}otto dig -raw$END.\n
     If you expected to have networking on this box, ${BLK_RED}do some checks$BLK_END. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
-}
 fi
+}
 ##############  Sure i am, dad.  ############
 
 params(){
@@ -129,22 +129,21 @@ chkdsk(){
     VERFDSK=$(df -h -m / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '14')
     BENUTZT=$(df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '11')
     GROSSEDSK=$(df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '8')
-    
+
 }
 
 uncompress(){
-    AMPEL=(
+    AMPEL=
 	"Extracting $PKGNM$PKG_FORMT."
 	"Extracting $PKGNM$PKG_FORMT.."
 	"Extracting $PKGNM$PKG_FORMT..."
-    )
     txtampel
     /usr/bin/7z x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
     kill $AMPID
 }
 
 build(){
-sh $PKGNM.otbuild    
+sh $PKGNM.otbuild
 }
 
 autoclean(){
@@ -158,7 +157,7 @@ pkgdown(){
 	#PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f ${#DASHES})
 	#or, a more portable alternative
 	#PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f `printf "$TORRENT\n" | grep -o '/' | wc -l`)
-	PKGNM=`printf "$TORRENT\n" | cut -d "/" -f 2`
+    PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f 2)
 	/usr/bin/pico-torrent -s -f "/usr/otto/db/$TORRENT.otlink" -d $SRCDIR
     done
 }
@@ -205,7 +204,9 @@ update(){
 }
 
 mkpkg(){
-    
+    params && chkroot
+    printf "${RED}ERROR:$END function not ready yet.\n"
+    exit 1
 }
 
 list(){
@@ -227,8 +228,8 @@ Betriebssystem: $HOST_OS
 
 Copyright (c) 2019-2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
 
-lib-txtampel und lib-posixalt (@ ${LOUSR}/lib/otto) 
-Copyright (c) 2019-2020 Jefferson Rocha et MazonOS Team. 
+lib-txtampel und lib-posixalt (@ ${LOUSR}/lib/otto)
+Copyright (c) 2019-2020 Jefferson Rocha et MazonOS Team.
 Copyright (c) 2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
 "
 exit 0
@@ -246,7 +247,7 @@ ${GREEN}Otto $VER, ein paketmanager.$END
 > -dig  (-d)    - Install package.
 > -bury (-b)    - Remove package.
 > -up2date (-u) - Update repository index and packages.
-> -mkpkg (-mp)  - Build a package (using source code or binaries). 
+> -mkpkg (-mp)  - Build a package (using source code or binaries).
 > -list  (-l)   - List installed packages.
 
 ✠ GOTT MIT UNS ✠
@@ -256,7 +257,7 @@ exit 0
 
 find(){
     params
-    grep "$1" $(which otto) "$OTTOETC/make.cfg"
+    grep "$1" "$(which otto)" "$OTTOETC/make.cfg"
     exit 0
 }
 
@@ -264,14 +265,14 @@ find(){
 
 ############## CASE DO SCRIPT #################
 case $1 in
-	-help|help|-H*) help ;;
-	-info|info|-I*) info ;;
-        -find|find|-f*) find "$@" ;;
-	-dig|dig|-d*) install "$@" ;;
-	-bury|bury|-b*) remove "$@" ;;
-	-up2date|up2date|-u*) update "$@" ;;
-	-mkpkg|mkpkg|-mp*) mkpkg "$2" ;;
-        -list|list|-l*) list "$@" ;;
-	*) help ;;
+    -help|help|-H*) help ;;
+    -info|info|-I*) info ;;
+    -find|find|-f*) find "$@" ;;
+    -dig|dig|-d*) install "$@" ;;
+    -bury|bury|-b*) remove "$@" ;;
+    -up2date|up2date|-u*) update "$@" ;;
+    -mkpkg|mkpkg|-mp*) mkpkg "$2" ;;
+    -list|list|-l*) list "$@" ;;
+    *) help ;;
 esac
 ############## FIM DO CASE ####################
