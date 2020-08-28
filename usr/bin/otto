@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #############    Depends    ###############
-# Python 3.[4,8]
+# Python 3.(4,8)
 # Libtorrent and Libtorrent bindings for Python 3.x
 # CURL
 # POSIX 7-Zip (p7zip)
@@ -47,7 +47,7 @@ export LC_ALL=${LANG}
 ##############     END       ##############
 
 ############# Export chdir alias ########## 
-# Isso deve ser comentado em Shells que já tenham o chdir como comando nativo.
+# This shall be commented when /bin/sh already has a native "chdir" command/system call.
 alias chdir='cd'
 ##############     END       ##############
 
@@ -83,9 +83,7 @@ fi
 ############## ARE YA CHECKING SON? #########
 chkroot(){
 if [ $(id -u) -ne 0 ]; then
-    printf "It looks like you are not logged into ${YELLOW}toor$END nor ${YELLOW}root$END user...\n"
-    printf "Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n"
-    printf "${BLK_RED}WARNING:$END Some packages cannot be installed on the highest userland layer under any circunstances.\n"
+    printf "It looks like you are not logged into ${YELLOW}toor$END nor ${YELLOW}root$END user...\n Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n ${BLK_RED}WARNING:$END Some packages cannot be installed on the highest userland layer under any circunstances.\n"
     read ANTWORTEN
     if echo "$ANTWORTEN" | pgrep -iq "^n" ;then
         printf "Alright, exiting."
