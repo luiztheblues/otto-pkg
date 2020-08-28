@@ -82,22 +82,22 @@ fi
 
 ############## ARE YA CHECKING SON? #########
 chkroot(){
-    if [ "$(id -u)" -ne 0 ]; then
-        printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\n Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n ${BLK_RED}WARNING:$END Some packages cannot be installed on the highest userland layer under any circunstances.\n"
-        read -r ANTWORTEN
+  if [ `id -u` -ne 0 ]; then
+     printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\n Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n ${BLK_RED}WARNING:$END Some packages ${RED}cannot$END be installed on the highest userland layer ${RED}under any circunstances$END.\n"
+    read -r ANTWORTEN
     if echo "$ANTWORTEN" | pgrep -iq "^n" ;then
-        printf "Alright, exiting."
-        exit 130
+      printf "Alright, exiting."
+      exit 130
     else
-	    export USRDIR=${HIUSR}
-	    export USRBIN=${HIUSRBIN}
-	    export ETC=${HIETC}
+	  export USRDIR=${HIUSR}
+	  export USRBIN=${HIUSRBIN}
+	  export ETC=${HIETC}
     fi
-else
+  else
     export USRDIR=${LOUSR}
     export USRBIN=${LOUSRBIN}
     export ETC=${LOETC}
-fi
+  fi
 }
 
 chknet(){
@@ -119,7 +119,7 @@ fi
 
 params(){
 if [ -z "$1" ]; then
-    printf "${RED}ERROR:$END Insufficient parameters.\n"
+   i  printf "${RED}ERROR:$END Insufficient parameters.\n"
     exit 127
 fi
 }
@@ -129,14 +129,14 @@ DSKFUNC=(8 11 14)
 BENUTZT=${DSKFUNC[1]} # Benutzt disk (used disk)
 VERFDSK=${DSKFUNC[2]} # Verfügbar disk (avaible disk)
 GROSSEDSK=${DSKFUNC[0]} # disk Größe (disk size)
-CHKDSK_PIPELINE=$(df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f)
+CHKDSK_PIPELINE=`df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f`
 }
 
 uncompress(){
-    AMPEL=
+    AMPEL=(
 	"Extracting $PKGNM$PKG_FORMT."
 	"Extracting $PKGNM$PKG_FORMT.."
-	"Extracting $PKGNM$PKG_FORMT..."
+    "Extracting $PKGNM$PKG_FORMT...")
     txtampel
     /usr/bin/7z x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
     kill "$AMPID"
@@ -157,7 +157,7 @@ pkgdown(){
 	#PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f ${#DASHES})
 	#or, a more portable alternative
 	#PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f $(printf "$TORRENT\n" | grep -o '/' | wc -l)
-    PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f 2)
+    PKGNM=`printf "$TORRENT\n" | cut -d "/" -f 2`
 	/usr/bin/pico-torrent -s -f "/usr/otto/db/$TORRENT.otlink" -d "$SRCDIR"
     done
 }
@@ -241,14 +241,14 @@ help(){
     printf "\
 ${GREEN}Otto $VER, ein paketmanager.$END
 
-> -help (-H)    - Show this help message.
-> -info (-I)    - List info about the software.
-> -find (-f)    - Search for content in Otto's files.
-> -dig  (-d)    - Install package.
-> -bury (-b)    - Remove package.
-> -up2date (-u) - Update repository index and packages.
-> -mkpkg (-mp)  - Build a package (using source code or binaries).
-> -list  (-l)   - List installed packages.
+> help (-H)    - Show this help message.
+> info (-I)    - List info about the software.
+> find (-f)    - Search for content in Otto's files.
+> dig  (-d)    - Install package.
+> bury (-b)    - Remove package.
+> up2date (-u) - Update repository index and packages.
+> mkpkg (-mp)  - Build a package (using source code or binaries).
+> list  (-l)   - List installed packages.
 
 ✠ GOTT MIT UNS ✠
 "
@@ -257,7 +257,7 @@ exit 0
 
 find(){
     params
-    grep "$1" "$(which otto)" "$OTTOETC/make.cfg"
+    grep "$1" `which otto` "$OTTOETC/make.cfg"
     exit 0
 }
 
@@ -265,14 +265,14 @@ find(){
 
 ############## CASE DO SCRIPT #################
 case $1 in
-    -help|help|-H*) help ;;
-    -info|info|-I*) info ;;
-    -find|find|-f*) find "$@" ;;
-    -dig|dig|-d*) install "$@" ;;
-    -bury|bury|-b*) remove "$@" ;;
-    -up2date|up2date|-u*) update "$@" ;;
-    -mkpkg|mkpkg|-mp*) mkpkg "$2" ;;
-    -list|list|-l*) list "$@" ;;
+    help|-H*) help ;;
+    info|-I*) info ;;
+    find|-f*) find "$@" ;;
+    dig|-d*) install "$@" ;;
+    bury|-b*) remove "$@" ;;
+    up2date|-u*) update "$@" ;;
+    mkpkg|-mp*) mkpkg "$2" ;;
+    list|-l*) list "$@" ;;
     *) help ;;
 esac
 ############## FIM DO CASE ####################
