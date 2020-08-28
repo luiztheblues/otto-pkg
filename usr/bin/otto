@@ -125,11 +125,11 @@ fi
 }
 
 chkdsk(){
-# Really bad functions made to take the disk space value, change it later.
-    VERFDSK=$(df -h -m / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '14')
-    BENUTZT=$(df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '11')
-    GROSSEDSK=$(df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f '8')
-
+DSKFUNC=(8, 11, 14)
+BENUTZT=${DSKFUNC[1]} # Benutzt disk (used disk)
+VERFDSK=${DSKFUNC[2]} # Verfügbar disk (avaible disk)
+GROSSEDSK=${DSKFUNC[0]} # disk Größe (disk size)
+CHKDSK_PIPELINE=`df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f `
 }
 
 uncompress(){
