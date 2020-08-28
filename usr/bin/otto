@@ -82,16 +82,16 @@ fi
 
 ############## ARE YA CHECKING SON? #########
 chkroot(){
-if [ `id -u` -ne 0 ]; then
-    printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\n Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n ${BLK_RED}WARNING:$END Some packages cannot be installed on the highest userland layer under any circunstances.\n"
-    read -r ANTWORTEN
+    if [ "$(id -u)" -ne 0 ]; then
+        printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\n Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n ${BLK_RED}WARNING:$END Some packages cannot be installed on the highest userland layer under any circunstances.\n"
+        read -r ANTWORTEN
     if echo "$ANTWORTEN" | pgrep -iq "^n" ;then
         printf "Alright, exiting."
         exit 130
     else
-	   export USRDIR=${HIUSR}
-	   export USRBIN=${HIUSRBIN}
-	   export ETC=${HIETC}
+	    export USRDIR=${HIUSR}
+	    export USRBIN=${HIUSRBIN}
+	    export ETC=${HIETC}
     fi
 else
     export USRDIR=${LOUSR}
@@ -105,10 +105,10 @@ chknet(){
     txtwait
 if  printf "GET luiznet.tk HTTP/1.0\n\n" | timeout 12 netcat luiznet.tk 80 > /dev/null 2>&1
 then
-    kill $WAITPID
+    kill "$WAITPID"
     printf "[ ${GREEN}OK$END ]\n"
 else
-    kill $WAITPID
+    kill "$WAITPID"
     printf "[ ${RED}FAILED$END ]\n"
     printf "Apparently, this box ${RED}isn't connected$END to the World Wide Web.\a\n
     If you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains the source-code/program files and a build/install file), save it in a diskette, CD, SDCard or USB and install it using ${YELLOW}otto dig -raw$END.\n
@@ -125,11 +125,11 @@ fi
 }
 
 chkdsk(){
-DSKFUNC=(8, 11, 14)
+DSKFUNC=(8 11 14)
 BENUTZT=${DSKFUNC[1]} # Benutzt disk (used disk)
 VERFDSK=${DSKFUNC[2]} # Verfügbar disk (avaible disk)
 GROSSEDSK=${DSKFUNC[0]} # disk Größe (disk size)
-CHKDSK_PIPELINE=`df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f `
+CHKDSK_PIPELINE=$(df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f)
 }
 
 uncompress(){
@@ -139,11 +139,11 @@ uncompress(){
 	"Extracting $PKGNM$PKG_FORMT..."
     txtampel
     /usr/bin/7z x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
-    kill $AMPID
+    kill "$AMPID"
 }
 
 build(){
-sh $PKGNM.otbuild
+sh "$PKGNM".otbuild
 }
 
 autoclean(){
@@ -156,9 +156,9 @@ pkgdown(){
 	#DASHES=${TORRENT//[^\/]}
 	#PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f ${#DASHES})
 	#or, a more portable alternative
-	#PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f `printf "$TORRENT\n" | grep -o '/' | wc -l`)
+	#PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f $(printf "$TORRENT\n" | grep -o '/' | wc -l)
     PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f 2)
-	/usr/bin/pico-torrent -s -f "/usr/otto/db/$TORRENT.otlink" -d $SRCDIR
+	/usr/bin/pico-torrent -s -f "/usr/otto/db/$TORRENT.otlink" -d "$SRCDIR"
     done
 }
 
