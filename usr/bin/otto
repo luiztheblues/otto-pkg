@@ -39,7 +39,9 @@
 # TO DO:
 # Terminar as funções pelo menos.
 # Otimizar o máximo possível.
-
+# Make it portable
+# Fix identation
+# Make install() function
 
 ############# Export C locale #############
 export LANG=C
@@ -53,7 +55,7 @@ alias chdir='cd'
 
 ############# Program Specifications ######
 export PROG='Otto'
-export VER='1.0.0'
+export VER='0.1.4'
 export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
@@ -61,12 +63,12 @@ export OTTOETC='/etc/otto'
 export HOST_OS=${HKERNEL}
 ##############     END       ##############
 
-############## Include Files ##############
-. /usr/lib/otto/colors.i
-. /usr/lib/otto/blink.i
-. /usr/lib/otto/txtampel.i
-. /usr/lib/otto/txtwait.i
-. /usr/lib/otto/posix-alt.i
+############## Include Files  ##############
+. /usr/lib/otto/colors.shi
+. /usr/lib/otto/blink.shi
+. /usr/lib/otto/txtampel.shi
+. /usr/lib/otto/txtwait.shi
+. /usr/lib/otto/posix-alt.shi
 ##############     END       ##############
 
 # Load the configuration file:
