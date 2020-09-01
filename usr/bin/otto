@@ -55,7 +55,7 @@ alias chdir='cd'
 
 ############# Program Specifications ######
 export PROG='Otto'
-export VER='0.1.4'
+export VER='0.1'
 export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
