@@ -42,7 +42,7 @@
 # Make it portable
 # Fix identation  (tab = two spaces)
 # Write the install() function
-# Write the remove() functions (and finish others!)
+# Write the remove() function (and finish others!)
 # Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file.
 
 ############# Export C locale #############
