@@ -3,7 +3,7 @@
 
 txtwait()
 {
-  for dot in `seq 1 35`; do
+  for DOT in `seq 1 35`; do
            printf "."
 	   sleep 0.2s
   done

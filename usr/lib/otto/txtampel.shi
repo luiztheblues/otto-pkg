@@ -12,10 +12,10 @@ txtampel()
 		[[ "$INC" -gt '44' ]] && COLOR="${RED}"
 		[[ "$INC" -gt '66' ]] && COLOR="${YELLOW}"
 		# Print it in the screen!
-        for i in "${ampel[@]}"; do
-            	printf "${COLOR}\r$i$END\n"
+        for TEXT in ${AMPEL[@]}; do
+            	printf "${COLOR}\r$TEXT$END\n"
 			sleep 0.3s
-			INC=$(($INC + 1))
+			INC=$[$INC + 1]
         done
     done
 	

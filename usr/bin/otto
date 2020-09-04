@@ -40,8 +40,9 @@
 # Terminar as funções pelo menos.
 # Otimizar o máximo possível.
 # Make it portable
-# Fix identation
-# Make install() function
+# Fix identation  (tab = two spaces)
+# Write the install() function
+# Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file.
 
 ############# Export C locale #############
 export LANG=C
@@ -66,6 +67,7 @@ export HOST_OS=${HKERNEL}
 ############## Include Files  ##############
 . /usr/lib/otto/colors.shi
 . /usr/lib/otto/blink.shi
+. /usr/lib/otto/txtsatz.shi
 . /usr/lib/otto/txtampel.shi
 . /usr/lib/otto/txtwait.shi
 . /usr/lib/otto/posix-alt.shi
@@ -103,65 +105,62 @@ chkroot(){
 }
 
 chknet(){
-    printf "Checking network connection"
-    txtwait
-if  printf "GET luiznet.tk HTTP/1.0\n\n" | timeout 12 netcat luiznet.tk 80 > /dev/null 2>&1
-then
+  printf "Checking network connection"
+  txtwait
+  if  printf "GET luiznet.tk HTTP/1.0\n\n" | timeout 12 netcat luiznet.tk 80 > /dev/null 2>&1
+  then
     kill "$WAITPID"
     printf "[ ${GREEN}OK$END ]\n"
-else
+  else
     kill "$WAITPID"
     printf "[ ${RED}FAILED$END ]\n"
     printf "Apparently, this box ${RED}isn't connected$END to the World Wide Web.\a\n
     If you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains the source-code/program files and a build/install file), save it in a diskette, CD, SDCard or USB and install it using ${YELLOW}otto dig -raw$END.\n
     If you expected to have networking on this box, ${BLK_RED}do some checks$BLK_END. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
-fi
+  fi
 }
 ##############  Sure i am, dad.  ############
 
 params(){
-if [ -z "$1" ]; then
-   i  printf "${RED}ERROR:$END Insufficient parameters.\n"
+  if [ -z "$1" ]; then
+    printf "${RED}ERROR:$END Insufficient parameters.\n"
     exit 127
-fi
+  fi
 }
 
 chkdsk(){
-DSKFUNC=(8 11 14)
-BENUTZT=${DSKFUNC[1]} # Benutzt disk (used disk)
-VERFDSK=${DSKFUNC[2]} # Verfügbar disk (avaible disk)
-GROSSEDSK=${DSKFUNC[0]} # disk Größe (disk size)
-CHKDSK_PIPELINE=`df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f`
+  set -A DSKFUNC 8 11 14
+  BENUTZT=${DSKFUNC[1]} # Benutzt disk (used disk)
+  VERFDSK=${DSKFUNC[2]} # Verfügbar disk (avaible disk)
+  GROSSEDSK=${DSKFUNC[0]} # disk Größe (disk size)
+  CHKDSK_PIPELINE=`df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f`
 }
 
 uncompress(){
-    AMPEL=(
-	"Extracting $PKGNM$PKG_FORMT."
-	"Extracting $PKGNM$PKG_FORMT.."
-    "Extracting $PKGNM$PKG_FORMT...")
-    txtampel
-    /usr/bin/7z x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
-    kill "$AMPID"
+  set -A AMPEL "Extracting $PKGNM$PKG_FORMT." "Extracting $PKGNM$PKG_FORMT.."  "Extracting $PKGNM$PKG_FORMT..." 
+  txtampel
+  /usr/bin/7z x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1 
+  kill "$AMPID"
 }
 
 build(){
-sh "$PKGNM".otbuild
+  sh "$PKGNM".otbuild
 }
 
 autoclean(){
-    printf "Autocleaning...\n" ; rm -ri "$SRCDIR/old/*"
+  printf "Autocleaning...\n" ; rm -ri "$SRCDIR/old/*"
 }
 
 pkgdown(){
-    for TORRENT in "$@"; do
-	#TO BE IMPLEMENTED: Install packages from any directory
-	#DASHES=${TORRENT//[^\/]}
-	#PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f ${#DASHES})
-	#or, a more portable alternative
-	#PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f $(printf "$TORRENT\n" | grep -o '/' | wc -l)
+  for TORRENT in "$@"; do
+    #TO BE IMPLEMENTED: Install packages from any directory
+    #DASHES=${TORRENT//[^\/]}
+    #PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f ${#DASHES})
+    #or, a more portable alternative
+    #PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f $(printf "$TORRENT\n" | grep -o '/' | wc -l)
     PKGNM=`printf "$TORRENT\n" | cut -d "/" -f 2`
-	/usr/bin/pico-torrent -s -f "/usr/otto/db/$TORRENT.otlink" -d "$SRCDIR"
-    done
+    /usr/bin/pico-torrent -s -f "/usr/otto/db/$TORRENT.otlink" -d "$SRCDIR"
+  done
 }
 
 # Rewrite this.
@@ -185,42 +184,41 @@ pkgdown(){
 #}
 
 install(){
-    params && chkroot && pkgdown
-    uncompress
+  params && chkroot && pkgdown
+  uncompress
 
 }
 
 remove(){
-    params && chkroot
-    printf "${RED}ERROR:$END function not ready yet.\n"
-    exit 1
+  params && chkroot
+  printf "${RED}ERROR:$END function not ready yet.\n"
+  exit 1
 }
 
 update(){
-    chkroot
-    chdir $OTTOETC
-    curl -OD -# "$MIRROR/pkgindex$INDEXFILE"
-    $PKG_COMPSS x "pkgindex$INDEXFILE"
-    printf "Package index updated.\n"
-    exit 0
+  chkroot
+  chdir $OTTOETC
+  curl -OD -# "$MIRROR/pkgindex$INDEXFILE"
+  $PKG_COMPSS x "pkgindex$INDEXFILE"
+  printf "Package index updated.\n"
+  exit 0
 }
 
 mkpkg(){
-    params && chkroot
-    printf "${RED}ERROR:$END function not ready yet.\n"
-    exit 1
+  printf "${RED}ERROR:$END function not ready yet.\n"
+  exit 1
 }
 
 list(){
-if [ -f "$OTTOETC/package.installed" ]; then
+  if [ -f "$OTTOETC/package.installed" ]; then
     pcat "$OTTOETC/package.installed"
-    lines "$OTTOETC/package.installed"
+     lines "$OTTOETC/package.installed"
     printf '%s\n' "$lines installed packages."
     exit 0
-else
+  else
     printf "${BLK_RED}ERROR:$BLK_END package list not found!.\a\n"
     exit 140
-fi
+  fi
 }
 
 info(){ printf "\
@@ -242,15 +240,15 @@ help(){
     export LC_ALL=${LANG}
     printf "\
 ${GREEN}Otto $VER, ein paketmanager.$END
-
-> help (-H)    - Show this help message.
+${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkgs>| -r (-d|-b) <pkg>$PKG_FORMT$END   
+${GREEN}> help (-H)    - Show this help message.
 > info (-I)    - List info about the software.
 > find (-f)    - Search for content in Otto's files.
 > dig  (-d)    - Install package.
 > bury (-b)    - Remove package.
 > up2date (-u) - Update repository index and packages.
-> mkpkg (-mp)  - Build a package (using source code or binaries).
-> list  (-l)   - List installed packages.
+> mkpkg (-i)   - Build a package (using source code or binaries).
+> list  (-l)   - List installed packages.$END
 
 ✠ GOTT MIT UNS ✠
 "
@@ -270,10 +268,10 @@ case $1 in
     help|-H*) help ;;
     info|-I*) info ;;
     find|-f*) find "$@" ;;
-    dig|-d*) install "$@" ;;
-    bury|-b*) remove "$@" ;;
-    up2date|-u*) update "$@" ;;
-    mkpkg|-mp*) mkpkg "$2" ;;
+    dig|-d*) params && chkroot && install "$@" ;;
+    bury|-b*) params && chkroot && remove "$@" ;;
+    up2date|-u*) chkroot && update "$@" ;;
+    mkpkg|-i*) chkroot && mkpkg "$2" ;;
     list|-l*) list "$@" ;;
     *) help ;;
 esac
