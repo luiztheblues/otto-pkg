@@ -42,6 +42,7 @@
 # Make it portable
 # Fix identation  (tab = two spaces)
 # Write the install() function
+# Write the remove() functions (and finish others!)
 # Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file.
 
 ############# Export C locale #############
@@ -74,20 +75,20 @@ export HOST_OS=${HKERNEL}
 ##############     END       ##############
 
 # Load the configuration file:
-if [ -f "$OTTOETC/make.cfg" ]; then
-	. "$OTTOETC/make.cfg"
-else
-	printf "${RED}make.cfg not found!$END\n"
-	printf "${YELLOW}Copy this file from the installation media (or download it from the offcial repo) and configure it.$END\n"
-    exit 1
-fi
+  if [ -f "$OTTOETC/make.cfg" ]; then
+    . "$OTTOETC/make.cfg"
+  else
+    printf "${RED}make.cfg not found!$END\n"
+    printf "${YELLOW}Copy this file from the installation media (or download it from the offcial repo) and configure it.$END\n"
+  exit 1
+  fi
 ############## Script Functions ##############
 
 
 ############## ARE YA CHECKING SON? #########
 chkroot(){
   if [ `id -u` -ne 0 ]; then
-     printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\n Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n ${BLK_RED}WARNING:$END Some packages ${RED}cannot$END be installed on the highest userland layer ${RED}under any circunstances$END.\n"
+    printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\n Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n ${BLK_RED}WARNING:$END Some packages ${RED}cannot$END be installed on the highest userland layer ${RED}under any circunstances$END.\n"
     read -r ANTWORTEN
     if echo "$ANTWORTEN" | pgrep -iq "^n" ;then
       printf "Alright, exiting."
@@ -184,8 +185,8 @@ pkgdown(){
 #}
 
 install(){
-  params && chkroot && pkgdown
   uncompress
+  build
 
 }
 
