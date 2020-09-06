@@ -110,10 +110,8 @@ chknet(){
   txtwait
   if  printf "GET luiznet.tk HTTP/1.0\n\n" | timeout 12 netcat luiznet.tk 80 > /dev/null 2>&1
   then
-    kill "$WAITPID"
     printf "[ ${GREEN}OK$END ]\n"
   else
-    kill "$WAITPID"
     printf "[ ${RED}FAILED$END ]\n"
     printf "Apparently, this box ${RED}isn't connected$END to the World Wide Web.\a\n
     If you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains the source-code/program files and a build/install file), save it in a diskette, CD, SDCard or USB and install it using ${YELLOW}otto dig -raw$END.\n
@@ -274,6 +272,7 @@ case $1 in
     up2date|-u*) chkroot && update "$@" ;;
     mkpkg|-i*) chkroot && mkpkg "$2" ;;
     list|-l*) list "$@" ;;
+    chknet*) chknet;;
     *) help ;;
 esac
 ############## FIM DO CASE ####################

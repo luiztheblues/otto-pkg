@@ -7,6 +7,4 @@ txtwait()
            printf "."
 	   sleep 0.2s
   done
-	
-  WAITPID=$! # Take the for loop PID, it will be useful to kill the loop later.
 }
