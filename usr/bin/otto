@@ -120,7 +120,7 @@ chknet(){
 }
 ##############  Sure i am, dad.  ############
 
-params(){
+chkparams(){
   if [ -z "$1" ]; then
     printf "${RED}ERROR:$END Insufficient parameters.\n"
     exit 127
@@ -151,15 +151,22 @@ autoclean(){
 }
 
 pkgdown(){
-  for TORRENT in "$@"; do
-    #TO BE IMPLEMENTED: Install packages from any directory
-    #DASHES=${TORRENT//[^\/]}
-    #PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f ${#DASHES})
-    #or, a more portable alternative
-    #PKGNM=$(printf "$TORRENT\n" | cut -d "/" -f $(printf "$TORRENT\n" | grep -o '/' | wc -l)
-    PKGNM=`printf "$TORRENT\n" | cut -d "/" -f 2`
-    /usr/bin/pico-torrent -s -f "/usr/otto/db/$TORRENT.otlink" -d "$SRCDIR"
-  done
+  if [ $SYNC_TYPE -eq bittorrent ]
+  then
+    for TORRENT in "$@"; do
+      PKGNM=`printf "$TORRENT\n" | cut -d "/" -f 2`
+      /usr/bin/pico-torrent -s -f "/usr/otto/db/$TORRENT/pkgp2p" -d "$SRCDIR"
+    done
+  elif [ $SYNC_TYPE -eq http -o $SYNC_TYPE -eq ftp ]
+  then
+    for PKG in "$@"; do
+      PKGNM=`printf "$PKG\n" | cut -d "/" -f 2`
+      /usr/bin/curl -# -O `cat "/usr/otto/db/$PKG/pkglink"`
+    done
+  else
+    printf "${RED}ERROR$END: SYNC_TYPE not set @ $OTTOETC/make.cfg.\n"
+ fi
+
 }
 
 # Rewrite this.
@@ -189,7 +196,6 @@ install(){
 }
 
 remove(){
-  params && chkroot
   printf "${RED}ERROR:$END function not ready yet.\n"
   exit 1
 }
@@ -267,8 +273,8 @@ case $1 in
     help|-H*) help ;;
     info|-I*) info ;;
     find|-f*) find "$@" ;;
-    dig|-d*) params && chkroot && install "$@" ;;
-    bury|-b*) params && chkroot && remove "$@" ;;
+    dig|-d*) chkparams && chkroot && install "$@" ;;
+    bury|-b*) chkparams && chkroot && remove "$@" ;;
     up2date|-u*) chkroot && update "$@" ;;
     mkpkg|-i*) chkroot && mkpkg "$2" ;;
     list|-l*) list "$@" ;;
