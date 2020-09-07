@@ -68,7 +68,6 @@ export HOST_OS=${HKERNEL}
 ############## Include Files  ##############
 . /usr/lib/otto/colors.shi
 . /usr/lib/otto/blink.shi
-. /usr/lib/otto/txtsatz.shi
 . /usr/lib/otto/txtampel.shi
 . /usr/lib/otto/txtwait.shi
 . /usr/lib/otto/posix-alt.shi
@@ -78,8 +77,7 @@ export HOST_OS=${HKERNEL}
   if [ -f "$OTTOETC/make.cfg" ]; then
     . "$OTTOETC/make.cfg"
   else
-    printf "${RED}make.cfg not found!$END\n"
-    printf "${YELLOW}Copy this file from the installation media (or download it from the offcial repo) and configure it.$END\n"
+    printf "${RED}ERROR$END: make.cfg not found!\n ${YELLOW}Copy this file from the installation media (or download it from the offcial repo) and configure it.$END\n"
   exit 1
   fi
 ############## Script Functions ##############
@@ -262,7 +260,6 @@ exit 0
 }
 
 find(){
-    params
     grep "$1" `which otto` "$OTTOETC/make.cfg"
     exit 0
 }
