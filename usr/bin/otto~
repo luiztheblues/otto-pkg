@@ -118,6 +118,7 @@ chknet(){
     If you expected to have networking on this box, ${BLK_RED}do some checks$BLK_END. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
   fi
 }
+##############  Sure i am, dad.  ############
 
 chkparams(){
   if [ -z "$1" ]; then
@@ -133,8 +134,6 @@ chkdsk(){
   GROSSEDSK=${DSKFUNC[0]} # disk Größe (disk size)
   CHKDSK_PIPELINE=`df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f`
 }
-
-##############  Sure i am, dad.  ############
 
 uncompress(){
   set -A AMPEL "Extracting $PKGNM$PKG_FORMT." "Extracting $PKGNM$PKG_FORMT.."  "Extracting $PKGNM$PKG_FORMT..." 
