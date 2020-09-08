@@ -37,13 +37,14 @@
 ##############     END       ##############
 
 # TO DO:
-# Terminar as funções pelo menos.
-# Otimizar o máximo possível.
-# Make it portable
-# Fix identation  (tab = two spaces)
-# Write the install() function
-# Write the remove() function (and finish others!)
-# Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file.
+# Terminar as funções pelo menos;
+# Otimizar o máximo possível;
+# Make it portable;
+# Fix identation  (tab = two spaces);
+# Write the install() function;
+# Write the remove() function (and finish others!);
+# Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file;
+# Fix lib txtampel.
 
 ############# Export C locale #############
 export LANG=C

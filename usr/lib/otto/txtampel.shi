@@ -15,7 +15,7 @@ txtampel()
         for TEXT in ${AMPEL[@]}; do
             	printf "${COLOR}\r$TEXT$END\n"
 			sleep 0.3s
-			INC=$[$INC + 1]
+			INC=$(($INC + 1))
         done
     done
 	
