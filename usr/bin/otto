@@ -51,7 +51,7 @@ export LC_ALL=${LANG}
 ##############     END       ##############
 
 ############# Export chdir alias ##########
-# This shall be commented when /bin/sh already has a native "chdir" command/system call.
+# This shall be commented when /bin/sh already has a native "chdir" command/system call, for example zsh.
 alias chdir='cd'
 ##############     END       ##############
 
@@ -86,10 +86,10 @@ export HOST_OS=${HKERNEL}
 ############## ARE YA CHECKING SON? #########
 chkroot(){
   if [ `id -u` -ne 0 ]; then
-    printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\n Would you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system [Y/N]?\n ${BLK_RED}WARNING:$END Some packages ${RED}cannot$END be installed on the highest userland layer ${RED}under any circunstances$END.\n"
+    printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\nWould you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system?\n${BLK_RED}WARNING:$END Some packages ${RED}cannot$END be installed on the highest userland layer ${RED}under any circunstances$END.\n[${GREEN}Y$END/${RED}N$END]?"
     read -r ANTWORTEN
-    if echo "$ANTWORTEN" | pgrep -iq "^n" ;then
-      printf "Alright, exiting."
+    if echo "$ANTWORTEN" | grep -iq "^n" ;then
+      printf "Alright so, exiting...\n"
       exit 130
     else
 	  export USRDIR=${HIUSR}
@@ -117,7 +117,7 @@ chknet(){
 }
 
 chkparams(){
-  if [ -z "$1" ]; then
+  if [ -z "$@" ]; then
     printf "${RED}ERROR$END: Insufficient parameters.\n"
     exit 127
   fi
@@ -270,7 +270,7 @@ case $1 in
     help|-H*) help ;;
     info|-I*) info ;;
     find|-f*) find "$@" ;;
-    dig|-d*) chkparams && chkroot && install "$@" ;;
+    dig|-d*) chkroot && install "$@" ;;
     bury|-b*) chkparams && chkroot && remove "$@" ;;
     up2date|-u*) chkroot && update "$@" ;;
     mkpkg|-i*) chkroot && mkpkg "$2" ;;
