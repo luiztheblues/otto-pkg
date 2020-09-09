@@ -67,7 +67,7 @@ export HOST_OS=${HKERNEL}
 
 ############## ARE YA CHECKING SON? #########
 chkroot(){
-  if [ `id -u` -ne 0 ]; then
+  if [ "`id -u`" -ne 0 ]; then
     printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\nWould you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system?\n${BLK_RED}WARNING$END: Some packages ${RED}cannot$END be installed on the highest userland layer ${RED}under any circunstances$END.\n[${GREEN}Y$END/${RED}N$END]? "
     read -r ANTWORTEN
     if echo "$ANTWORTEN" | grep -iq "^y" ;then
@@ -106,7 +106,7 @@ chkparams(){
 }
 
 chkdsk(){
-  set -A DSKFUNC 8 11 14
+  set -a DSKFUNC 8 11 14
   BENUTZT=${DSKFUNC[1]} # Benutzt disk (used disk)
   VERFDSK=${DSKFUNC[2]} # Verfügbar disk (avaible disk)
   GROSSEDSK=${DSKFUNC[0]} # disk Größe (disk size)
@@ -116,7 +116,7 @@ chkdsk(){
 ##############  Sure i am, dad.  ############
 
 uncompress(){
-  set -A AMPEL "Extracting $PKGNM$PKG_FORMT." "Extracting $PKGNM$PKG_FORMT.."  "Extracting $PKGNM$PKG_FORMT..."
+  set -a AMPEL "Extracting $PKGNM$PKG_FORMT." "Extracting $PKGNM$PKG_FORMT.."  "Extracting $PKGNM$PKG_FORMT..."
   txtampel
   /usr/bin/7z x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
   kill "$AMPID"
@@ -131,17 +131,17 @@ autoclean(){
 }
 
 pkgdown(){
-  if [ "$SYNC_TYPE" -eq "bittorrent" ]
+  if [ "$SYNC_TYPE" = "bittorrent" ]
   then
     for TORRENT in "$@"; do
       PKGNM=`printf "$TORRENT\n" | cut -d "/" -f 2`
       /usr/bin/pico-torrent -s -f "/usr/otto/db/$TORRENT/pkgp2p" -d "$SRCDIR"
     done
-  elif [ "$SYNC_TYPE" -eq "http" -o "$SYNC_TYPE" -eq "ftp" ]
+  elif [ "$SYNC_TYPE" = "http" ] || [ "$SYNC_TYPE" = "ftp" ]
   then
     for PKG in "$@"; do
       PKGNM=`printf "$PKG\n" | cut -d "/" -f 2`
-      /usr/bin/curl -# -O `cat "/usr/otto/db/$PKG/pkglink"`
+      /usr/bin/curl -# -O "`cat "/usr/otto/db/$PKG/pkglink"`"
     done
   else
     printf "${RED}ERROR$END: SYNC_TYPE not set @ $OTTOETC/make.cfg.\n"
@@ -241,7 +241,7 @@ exit 0
 }
 
 find(){
-    grep "$1" `which otto` "$OTTOETC/make.cfg"
+    grep "$1" "`which otto`" "$OTTOETC/make.cfg"
     exit 0
 }
 
