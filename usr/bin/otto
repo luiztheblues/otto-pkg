@@ -25,7 +25,7 @@
 # Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file;
 # Fix lib txtampel;
 # Fix chkparams();
-# Create a log function, for save it in /var/otto/system/logs.
+# Create a log function, for save every operation log in /var/otto/system/logs/otto_`date`. A little useless for now.
 
 ############# Export C locale #############
 export LANG=C
