@@ -65,7 +65,7 @@ export HOST_OS=${HKERNEL}
 
 ############## Script Functions ##############
 
-############## ARE YA CHECKING SON? #########
+############ ARE YA CHECKING SON? #########
 chkroot(){
   if [ "`id -u`" -ne 0 ]; then
     printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\nWould you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system?\n${BLK_RED}WARNING$END: Some packages ${RED}cannot$END be installed on the highest userland layer ${RED}under any circunstances$END.\n[${GREEN}Y$END/${RED}N$END]? "
@@ -75,7 +75,7 @@ chkroot(){
       export USRBIN=${HIUSRBIN}
       export ETC=${HIETC}
       export SRCDIR=${HISRCDIR}
-      export HILEVELDIRS=ENABLED
+      export HILEVELDIRS=YES
     else
       printf "Alright so, exiting...\n"
       exit 130
@@ -85,7 +85,7 @@ chkroot(){
     export USRBIN=${LOUSRBIN}
     export ETC=${LOETC}
     export SRCDIR=${LOSRCDIR}
-    export HILEVELDIRS=DISABLED
+    export HILEVELDIRS=NO
   fi
 }
 
@@ -142,15 +142,15 @@ pkgdown(){
   if [ "$SYNC_TYPE" = "bittorrent" ]
   then
     for TORRENT in "$@"; do
-      PKGNM=`printf "$TORRENT\n" | cut -d "/" -f 2`
+      PKG=`printf "$TORRENT\n" | cut -d "/" -f 2`
       CATEGORY=`printf "$TORRENT\n" | cut -d "/" -f 1`  
       /usr/bin/pico-torrent -s -f "$PKGDIR/$TORRENT/pkgp2p" -d "$SRCDIR"
     done
   elif [ "$SYNC_TYPE" = "http" ] || [ "$SYNC_TYPE" = "ftp" ]
   then
-    for PKG in "$@"; do
-      PKGNM=`printf "$PKG\n" | cut -d "/" -f 2`
-      CATEGORY=`printf "$PKG\n" | cut -d "/" -f 1`
+    for PKGNM in "$@"; do
+      PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
+      CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
       /usr/bin/curl -# -O "`cat "/usr/otto/db/$PKG/pkglink"`"
     done
   else
@@ -186,8 +186,13 @@ install(){
 }
 
 remove(){
-  printf "${RED}ERROR:$END function not ready yet.\n"
-  exit 1
+  for PKGNM in "$@"; do 
+    PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`   
+    CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
+    printf "Removing $CATEGORY/$PKG"
+    cat /var/otto/installed/pkg/$PKG/pkgmap | xargs rm -rv  
+    sed -i '/"$PKGNM"/d' /var/otto/installed/contents
+  done
 }
 
 update(){
