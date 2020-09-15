@@ -1,8 +1,8 @@
-#!/usr/bin/env sh
+#!/usr/bin/env zsh
 # vim: noai:ts=4:sw=4:expandtab
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
-# Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent herunterlädt.
+# Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent (und nun HTTP) herunterlädt.
 
 # BSD 2-Clause License
 # Copyright (c) 2019-2020, Luiz Antônio Rangel et Projeto Pindorama
@@ -34,12 +34,12 @@ export LC_ALL=${LANG}
 
 ############# Export chdir alias ##########
 # This shall be commented when /bin/sh already has a native "chdir" command/system call, for example zsh.
-alias chdir='cd'
+# alias chdir='cd'
 ##############     END       ##############
 
 ############# Program Specifications ######
 export PROG='Otto'
-export VER='0.1'
+export VER='0.2'
 export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
@@ -74,6 +74,7 @@ chkroot(){
       export USRDIR=${HIUSR}
       export USRBIN=${HIUSRBIN}
       export ETC=${HIETC}
+      export HILEVELDIRS=ENABLED
     else
       printf "Alright so, exiting...\n"
       exit 130
@@ -82,6 +83,7 @@ chkroot(){
     export USRDIR=${LOUSR}
     export USRBIN=${LOUSRBIN}
     export ETC=${LOETC}
+    export HILEVELDIRS=DISABLED
   fi
 }
 
@@ -113,6 +115,10 @@ chkdsk(){
   CHKDSK_PIPELINE=`df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f`
 }
 
+chkdeps(){
+  for DEPS in $DEPENDENCIES
+}
+
 ##############  Sure i am, dad.  ############
 
 uncompress(){
@@ -123,7 +129,7 @@ uncompress(){
 }
 
 build(){
-  sh "$PKGNM".otbuild
+  /bin/sh $SRCDIR/$PKGNM/install/pkgbuild 
 }
 
 autoclean(){
