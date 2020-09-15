@@ -1,0 +1,13 @@
+PKG=curl
+NAME=curl 7.37.1 SPARC 64bit Solaris 8
+VERSION=7.37.1
+PSTAMP=18th July 2014
+VENDOR=The cURL Project
+EMAIL=http://curl.haxx.se/download.html
+DESC=CLI URL fetcher
+ARCH=sparc
+CATEGORY=utility
+CLASSES=none
+BASEDIR=/
+ISTATES=S s 1 2 3
+RSTATES=S s 1 2 3
