@@ -103,7 +103,7 @@ chknet(){
 }
 
 chkparams(){
-  if [ -z "$1" ]; then
+  if [ -z "$2" ]; then
     printf "${RED}ERROR$END: Insufficient parameters.\n"
     exit 127
   fi

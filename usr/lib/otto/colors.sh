@@ -1,5 +1,7 @@
+#!/bin/sh
+
 export RED='\033[31;1m'
 export YELLOW='\033[33;1m'
 export BLUE='\033[34;1m'
 export GREEN='\033[32;1m'
-export END='\033[m' 
+export END='\033[m'

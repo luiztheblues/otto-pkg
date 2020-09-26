@@ -1,8 +1,10 @@
+#!/bin/bash
+
 ## Shell alternatives to external processes
 ## pcat and pgrep by Jefferson Rocha <jeffersoncarneiro@slackjeff.com.br> @ bananapkg
-## lines by Caio Novais <caionov08@gmail.com> 
+## lines by Caio Novais <caionov08@gmail.com>
 
-# wc -l  
+# wc -l
 lines(){
     while IFS=$(read -r lines) || [ -n "$lines" ]; do
         lines=$(lines+1)
@@ -10,8 +12,7 @@ lines(){
 }
 
 # grep
-pgrep()
-{
+pgrep(){
     # Se encontrar a linha ele retorna a expressão encontrada! com status 0
     # se não é status 1.
     # Para utilizar este módulo precisa ser passado o argumento seguido do arquivo.
@@ -23,7 +24,7 @@ pgrep()
     if [[ -z "$expression" ]]; then
         { printf 'MODULE pgrep ERROR. Not found variable $expression.\n'; exit 1 ;}
     elif [[ -z "$receive" ]]; then
-	{ printf 'MODULE pgrep ERROR. Not found variable $receive.\n'; exit 1 ;}
+{ printf 'MODULE pgrep ERROR. Not found variable $receive.\n'; exit 1 ;}
     fi
     while IFS= read line; do
         [[ "$line" =~ $expression ]] && { printf "$line\n"; return 0;}
@@ -32,8 +33,7 @@ pgrep()
 }
 
 # cat
-pcat() #POSIX concatenate
-{
+pcat(){ #POSIX concatenate
     # Tag para sinalizar que precisa parar.
     local end_of_file='EOF'
     INPUT=("${@:-"%"}")
