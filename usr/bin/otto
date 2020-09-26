@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env ksh
 # vim: noai:ts=4:sw=4:expandtab
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
@@ -24,8 +24,8 @@
 # Write the remove() and install() function (and finish others!);
 # Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file;
 # Fix lib txtampel;
-# Fix chkparams();
 # Create a log function, for save every operation log in /var/otto/system/logs/otto_`date`. A little useless for now.
+# Fix the inconsistent code style.
 
 ############# Export C locale #############
 export LANG=C
@@ -48,11 +48,11 @@ export HOST_OS=${HKERNEL}
 ##############     END       ##############
 
 ############## Include Files  ##############
-. /usr/lib/otto/colors.shi
-. /usr/lib/otto/blink.shi
-. /usr/lib/otto/txtampel.shi
-. /usr/lib/otto/txtwait.shi
-. /usr/lib/otto/posix-alt.shi
+. /usr/lib/otto/colors.sh
+. /usr/lib/otto/blink.sh
+. /usr/lib/otto/txtampel.sh
+. /usr/lib/otto/txtwait.sh
+. /usr/lib/otto/posix-alt.sh
 ##############     END       ##############
 
 # Load the configuration file:
@@ -103,7 +103,7 @@ chknet(){
 }
 
 chkparams(){
-  if [ -z "$@" ]; then
+  if [ -z "$1" ]; then
     printf "${RED}ERROR$END: Insufficient parameters.\n"
     exit 127
   fi
@@ -118,7 +118,9 @@ chkdsk(){
 }
 
 chkdeps(){
-  for DEPS in $DEPENDENCIES
+  for DEPS in $DEPENDENCIES; do
+    echo "I didn't finish this function yet, lol"
+  done
 }
 
 ##############  Sure i am, dad.  ############
@@ -131,7 +133,7 @@ uncompress(){
 }
 
 build(){
-  /bin/sh $SRCDIR/$PKGNM/install/pkgbuild 
+  /bin/sh "$SRCDIR"/"$PKGNM"/install/pkgbuild
 }
 
 autoclean(){
@@ -143,7 +145,7 @@ pkgdown(){
   then
     for TORRENT in "$@"; do
       PKG=`printf "$TORRENT\n" | cut -d "/" -f 2`
-      CATEGORY=`printf "$TORRENT\n" | cut -d "/" -f 1`  
+      CATEGORY=`printf "$TORRENT\n" | cut -d "/" -f 1`
       /usr/bin/pico-torrent -s -f "$PKGDIR/$TORRENT/pkgp2p" -d "$SRCDIR"
     done
   elif [ "$SYNC_TYPE" = "http" ] || [ "$SYNC_TYPE" = "ftp" ]
@@ -186,12 +188,12 @@ install(){
 }
 
 remove(){
-  for PKGNM in "$@"; do 
-    PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`   
+  for PKGNM in "$@"; do
+    PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
     CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
     printf "Removing $CATEGORY/$PKG"
-    cat /var/otto/installed/pkg/$PKG/pkgmap | xargs rm -rv  
-    sed -i '/"$PKGNM"/d' /var/otto/installed/contents
+    < /var/otto/installed/pkg/"$PKG"/pkgmap xargs rm -rv
+    sed -i "/$PKGNM/d" /var/otto/installed/contents
   done
 }
 
@@ -268,7 +270,7 @@ case $1 in
     info|-I*) info ;;
     find|-f*) find "$@" ;;
     dig|-d*) chkroot && install "$@" ;;
-    bury|-b*) chkparams && chkroot && remove "$@" ;;
+    bury|-b*) chkparams "$@" && chkroot && remove "$@" ;;
     up2date|-u*) chkroot && update "$@" ;;
     mkpkg|-i*) chkroot && mkpkg "$2" ;;
     list|-l*) list "$@" ;;
