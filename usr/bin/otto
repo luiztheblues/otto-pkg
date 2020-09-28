@@ -1,4 +1,4 @@
-#!/usr/bin/env ksh
+#!/usr/bin/env zsh
 # vim: noai:ts=4:sw=4:expandtab
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
@@ -24,8 +24,8 @@
 # Write the remove() and install() function (and finish others!);
 # Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file;
 # Fix lib txtampel;
+# Fix chkparams();
 # Create a log function, for save every operation log in /var/otto/system/logs/otto_`date`. A little useless for now.
-# Fix the inconsistent code style.
 
 ############# Export C locale #############
 export LANG=C
@@ -48,16 +48,16 @@ export HOST_OS=${HKERNEL}
 ##############     END       ##############
 
 ############## Include Files  ##############
-. /usr/lib/otto/colors.sh
-. /usr/lib/otto/blink.sh
-. /usr/lib/otto/txtampel.sh
-. /usr/lib/otto/txtwait.sh
-. /usr/lib/otto/posix-alt.sh
+. /usr/lib/otto/colors.shi
+. /usr/lib/otto/blink.shi
+. /usr/lib/otto/txtampel.shi
+. /usr/lib/otto/txtwait.shi
+. /usr/lib/otto/posix-alt.shi
 ##############     END       ##############
 
 # Load the configuration file:
-  if [ -f "$OTTOETC/make.cfg" ]; then
-    . "$OTTOETC/make.cfg"
+  if [ -f "/etc/make.cfg" ]; then
+    . "/etc/make.cfg"
   else
     printf "${RED}ERROR$END: make.cfg not found!\n ${YELLOW}Copy this file from the installation media (or download it from the offcial repo) and configure it.$END\n"
   exit 1
@@ -75,7 +75,7 @@ chkroot(){
       export USRBIN=${HIUSRBIN}
       export ETC=${HIETC}
       export SRCDIR=${HISRCDIR}
-      export HILEVELDIRS=YES
+      export DIRISTATE=HI
     else
       printf "Alright so, exiting...\n"
       exit 130
@@ -85,7 +85,7 @@ chkroot(){
     export USRBIN=${LOUSRBIN}
     export ETC=${LOETC}
     export SRCDIR=${LOSRCDIR}
-    export HILEVELDIRS=NO
+    export DIRISTATE=LO
   fi
 }
 
@@ -97,7 +97,7 @@ chknet(){
     printf "[ ${GREEN}OK$END ]\n"
   else
     printf "[ ${RED}FAILED$END ]\n"
-    printf "${RED}ERROR$END: Apparently, this box ${RED}isn't connected$END to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains the source-code/program files and a build/install file), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}otto dig [raw|-r]$END.\nIf you expected to have networking on this box, ${BLK_RED}do some checks$BLK_END. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
+    printf "${RED}ERROR$END: Apparently, this box ${RED}isn't connected$END to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains everything necessary to install the program), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}otto dig [raw|-r]$END.\nIf you expected to have networking on this box, ${BLK_RED}do some checks$BLK_END. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
     exit 1
   fi
 }
@@ -117,12 +117,6 @@ chkdsk(){
   CHKDSK_PIPELINE=`df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f`
 }
 
-chkdeps(){
-  for DEPS in $DEPENDENCIES; do
-    echo "I didn't finish this function yet, lol"
-  done
-}
-
 ##############  Sure i am, dad.  ############
 
 uncompress(){
@@ -133,7 +127,7 @@ uncompress(){
 }
 
 build(){
-  /bin/sh "$SRCDIR"/"$PKGNM"/install/pkgbuild
+  /bin/sh $SRCDIR/$PKGNM/install/pkgbuild 
 }
 
 autoclean(){
@@ -145,7 +139,7 @@ pkgdown(){
   then
     for TORRENT in "$@"; do
       PKG=`printf "$TORRENT\n" | cut -d "/" -f 2`
-      CATEGORY=`printf "$TORRENT\n" | cut -d "/" -f 1`
+      CATEGORY=`printf "$TORRENT\n" | cut -d "/" -f 1`  
       /usr/bin/pico-torrent -s -f "$PKGDIR/$TORRENT/pkgp2p" -d "$SRCDIR"
     done
   elif [ "$SYNC_TYPE" = "http" ] || [ "$SYNC_TYPE" = "ftp" ]
@@ -153,7 +147,7 @@ pkgdown(){
     for PKGNM in "$@"; do
       PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
       CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
-      /usr/bin/curl -# -O "`cat "/usr/otto/db/$PKG/pkglink"`"
+      /usr/bin/curl -# -O "`cat "$PKGDIR/$PKG/pkglink"`"
     done
   else
     printf "${RED}ERROR$END: SYNC_TYPE not set @ $OTTOETC/make.cfg.\n"
@@ -188,12 +182,12 @@ install(){
 }
 
 remove(){
-  for PKGNM in "$@"; do
-    PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
+  for PKGNM in "$@"; do 
+    PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`   
     CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
     printf "Removing $CATEGORY/$PKG"
-    < /var/otto/installed/pkg/"$PKG"/pkgmap xargs rm -rv
-    sed -i "/$PKGNM/d" /var/otto/installed/contents
+    cat /var/otto/installed/pkg/$PKG/pkgmap | xargs rm -rv  
+    sed -i '/"$PKGNM"/d' /var/otto/installed/contents
   done
 }
 
@@ -270,7 +264,7 @@ case $1 in
     info|-I*) info ;;
     find|-f*) find "$@" ;;
     dig|-d*) chkroot && install "$@" ;;
-    bury|-b*) chkparams "$@" && chkroot && remove "$@" ;;
+    bury|-b*) chkparams && chkroot && remove "$@" ;;
     up2date|-u*) chkroot && update "$@" ;;
     mkpkg|-i*) chkroot && mkpkg "$2" ;;
     list|-l*) list "$@" ;;
