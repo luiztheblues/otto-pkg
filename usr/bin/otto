@@ -1,5 +1,5 @@
 #!/usr/bin/env ksh 
-# Did you fixed the array?
+# Do arrays actually work on Ksh? I think that array bug is a Public Domain Ksh fault, may i try it on ksh93 later.
 # vim: noai:ts=4:sw=4:expandtab
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
@@ -72,7 +72,7 @@ chkroot(){
   if [ "`id -u`" -ne 0 ]; then
     printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\nWould you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system?\n${BLK_RED}WARNING$END: Some packages ${RED}cannot$END be installed on the highest userland layer ${RED}under any circunstances$END.\n[${GREEN}Y$END/${RED}N$END]? "
     read -r ANTWORTEN
-    if echo "$ANTWORTEN" | grep -iq "^y" ;then
+    if `printf "$ANTWORTEN" | grep -iq "^y"` ;then
       export USRDIR=${HIUSR}
       export USRBIN=${HIUSRBIN}
       export ETC=${HIETC}
@@ -94,7 +94,7 @@ chkroot(){
 chknet(){
   printf "Checking network connection"
   txtwait
-  if  printf "GET luiznet.tk HTTP/1.0\n\n" | timeout 12 netcat luiznet.tk 80 > /dev/null 2>&1
+  if  printf "GET luiznet.tk HTTP/1.0\n\n" | timeout 12 /usr/bin/netcat luiznet.tk 80 > /dev/null 2>&1
   then
     printf "[ ${GREEN}OK$END ]\n"
   else
@@ -193,7 +193,7 @@ remove(){
     PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
     CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
     printf "Removing $CATEGORY/$PKG"
-    < /var/otto/installed/pkg/"$PKG"/pkgmap xargs rm -rv  # Wait, do this work? Really awesome to see that i didn't need that cat.
+    < /var/otto/installed/pkg/"$PKG"/pkgmap /usr/bin/xargs rm -rv  # Wait, do this work? Really awesome to see that i didn't need that cat.
     sed -i "/$PKGNM/d" /var/otto/installed/contents
   done
 }
@@ -201,8 +201,8 @@ remove(){
 update(){
   chkroot
   chdir /etc # What? Fix this, later.
-  curl -OD -# "$MIRROR/pkgindex$INDEXFILE"
-  "$PKG_COMPSS" x "pkgindex$INDEXFILE"
+  /usr/bin/curl -OD -# "$MIRROR/pkgindex$INDEXFILE"
+  /usr/bin/7z x "pkgindex$INDEXFILE"
   printf "Package index updated.\n"
   exit 0
 }
