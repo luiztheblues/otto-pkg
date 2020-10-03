@@ -36,7 +36,7 @@ export LC_ALL=${LANG}
 
 ############# Export chdir alias ##########
 # This shall be commented when /bin/sh already has a native "chdir" command/system call, for example zsh.
-# alias chdir='cd'
+alias chdir='cd'
 ##############     END       ##############
 
 ############# Program Specifications ######
@@ -45,7 +45,6 @@ export VER='0.2'
 export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
-export OTTOETC='/etc/otto'
 export HOST_OS=${HKERNEL}
 ##############     END       ##############
 
@@ -68,11 +67,11 @@ export HOST_OS=${HKERNEL}
 ############## Script Functions ##############
 
 ############ ARE YA CHECKING SON? #########
-chkroot(){
+Checkroot(){
   if [ "`id -u`" -ne 0 ]; then
     printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\nWould you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system?\n${BLK_RED}WARNING$END: Some packages ${RED}cannot$END be installed on the highest userland layer ${RED}under any circunstances$END.\n[${GREEN}Y$END/${RED}N$END]? "
     read -r ANTWORTEN
-    if `printf "$ANTWORTEN" | grep -iq "^y"` ;then
+    if grep -iq "^y" <<< "$ANTWORTEN" ;then
       export USRDIR=${HIUSR}
       export USRBIN=${HIUSRBIN}
       export ETC=${HIETC}
@@ -91,7 +90,7 @@ chkroot(){
   fi
 }
 
-chknet(){
+CheckNetwork(){
   printf "Checking network connection"
   txtwait
   if  printf "GET luiznet.tk HTTP/1.0\n\n" | timeout 12 /usr/bin/netcat luiznet.tk 80 > /dev/null 2>&1
@@ -104,14 +103,14 @@ chknet(){
   fi
 }
 
-chkparams(){
+CheckParameters(){
   if [ -z "$2" ]; then
     printf "${RED}ERROR$END: Insufficient parameters.\n"
     exit 127
   fi
 }
 
-chkdsk(){
+CheckDisk(){
   set -A DSKFUNC 8 11 14 # Advice for new developers/ShellCheck users: set is a Zsh/Ksh Shell built-in, not the binary itself. I'm using it here for setting a array. May i change it later for portability, but not now.
   BENUTZT=${DSKFUNC[1]} # Benutzt disk (used disk)
   VERFDSK=${DSKFUNC[2]} # Verfügbar disk (avaible disk)
@@ -119,30 +118,30 @@ chkdsk(){
   CHKDSK_PIPELINE=`df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f`
 }
 
-chkdeps(){
+CheckDependencies(){
   for DEPS in $DEPENDENCIES; do
-    printf "I didn't finish this function yet, lol"
+    printf "I didn't finish this function yet, lol.\nIdk how to do it yet too... How can i check name-per-name @ /var/otto/installed/contents?\nGrep doesn't seems to work..."
   done    
 }
 
 ##############  Sure i am, dad.  ############
 
-uncompress(){
+Uncompress(){
   set -A AMPEL "Extracting $PKGNM$PKG_FORMT." "Extracting $PKGNM$PKG_FORMT.."  "Extracting $PKGNM$PKG_FORMT..." # Advice for new developers/ShellCheck users: set is a Zsh/Ksh Shell built-in, not the binary itself. I'm using it here for setting a array. May i change it later for portability, but not now.
   txtampel
   /usr/bin/7z x "$SRCDIR"/"$PKGNM$PKG_FORMT" -bb1
   kill "$AMPID"
 }
 
-build(){
-  /bin/sh "$SRCDIR"/"$PKGNM"/install/pkgbuild 
+Build(){
+  /bin/sh "$SRCDIR"/"$PKGNM"/install/pkgbuild
 }
 
-autoclean(){
+AutoClean(){
   printf "Autocleaning...\n" ; rm -ri "$SRCDIR/old/*"
 }
 
-pkgdown(){
+DownwloadPackage(){
   if [ "$SYNC_TYPE" = "bittorrent" ]
   then
     for TORRENT in "$@"; do
@@ -183,12 +182,19 @@ pkgdown(){
 #    exit 0
 #}
 
-install(){
-  uncompress
-  build
+InstallPackage(){
+  Uncompress
+  Build
+  mkdir /var/otto/installed/pkg/OTTO$PKG
+  GenerateLocalpkgmap(){
+    cat > /var/otto/installed/pkg/OTTO$PKG/pkgmap << EOF
+    `cat "$SRCDIR"/"$PKGNM"/install/pkgmap`
+    EOF
+  } # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
+  # I need to write a GenerateLocalpkginfo function too, but not now (now it's 10:25 AM and i didn't sleep yet).
 }
 
-remove(){
+RemovePackage(){
   for PKGNM in "$@"; do 
     PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
     CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
@@ -198,33 +204,31 @@ remove(){
   done
 }
 
-update(){
-  chkroot
-  chdir /etc # What? Fix this, later.
+Update(){
+  chdir "$PKGDIR"
   /usr/bin/curl -OD -# "$MIRROR/pkgindex$INDEXFILE"
   /usr/bin/7z x "pkgindex$INDEXFILE"
   printf "Package index updated.\n"
   exit 0
 }
 
-mkpkg(){
+MakePackage(){
   printf "${RED}ERROR:$END function not ready yet.\n"
   exit 1
 }
 
-list(){
+ListPackages(){
   if [ -f "/var/otto/installed/contents" ]; then
-     cat "/var/otto/installed/contents"
      lines "/var/otto/installed/contents"
     printf '%s\n' "$lines installed packages."
     exit 0
   else
-    printf "${BLK_RED}ERROR:$BLK_END package list not found!.\a\n"
+    printf "${BLK_RED}ERROR:$BLK_END package list not found! This isn't a good thing...\a\n"
     exit 140
   fi
 }
 
-info(){ printf "\
+Info(){ printf "\
 Otto-PKG $VER
 Paketformat $PKG_FORMT
 Betriebssystem: $HOST_OS
@@ -238,7 +242,7 @@ Copyright (c) 2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
 exit 0
 }
 
-help(){
+Help(){
     export LANG=en_US.UTF-8
     export LC_ALL=${LANG}
     printf "\
@@ -259,7 +263,7 @@ exit 0
 }
 
 find(){
-    grep "$1" "`which otto`" "$OTTOETC/make.cfg"
+    grep "$1" "`which otto`" "/etc/make.cfg"
     exit 0
 }
 
@@ -267,15 +271,15 @@ find(){
 
 ############## CASE DO SCRIPT #################
 case $1 in
-    help|-H*) help ;;
-    info|-I*) info ;;
+    help|-H*) Help ;;
+    info|-I*) Info ;;
     find|-f*) find "$@" ;;
-    dig|-d*) chkroot && install "$@" ;;
-    bury|-b*) chkparams "$@" && chkroot && remove "$@" ;;
-    up2date|-u*) chkroot && update "$@" ;;
-    mkpkg|-i*) chkroot && mkpkg "$2" ;;
-    list|-l*) list "$@" ;;
-    chknet*) chknet;;
-    *) help ;;
+    dig|-d*) Checkroot && InstallPackage "$@" ;;
+    bury|-b*) CheckParameters "$@" && Checkroot && RemovePackage "$@" ;;
+    up2date|-u*) Checkroot && Update "$@" ;;
+    mkpkg|-i*) Checkroot && MakePackage "$2" ;;
+    list|-l*) ListPackages "$@" ;;
+    chknet*) CheckNetwork;;
+    *) Help ;;
 esac
 ############## FIM DO CASE ####################
