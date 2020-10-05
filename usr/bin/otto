@@ -51,7 +51,6 @@ export HOST_OS=${HKERNEL}
 ############## Include Files  ##############
 . /usr/lib/otto/colors.shi
 . /usr/lib/otto/blink.shi
-. /usr/lib/otto/txtampel.shi
 . /usr/lib/otto/txtwait.shi
 . /usr/lib/otto/posix-alt.shi
 ##############     END       ##############
@@ -127,10 +126,10 @@ CheckDependencies(){
 ##############  Sure i am, dad.  ############
 
 Uncompress(){
-  set -A AMPEL "Extracting $PKGNM$PKG_FORMT." "Extracting $PKGNM$PKG_FORMT.."  "Extracting $PKGNM$PKG_FORMT..." # Advice for new developers/ShellCheck users: set is a Zsh/Ksh Shell built-in, not the binary itself. I'm using it here for setting a array. May i change it later for portability, but not now.
-  txtampel
-  /usr/bin/7z x "$SRCDIR"/"$PKGNM$PKG_FORMT" -bb1
-  kill "$AMPID"
+  printf "Extracting $PKGNM$PKG_FORMT"
+  txtwait
+  /usr/bin/7z x "$SRCDIR"/"$PKGNM$PKG_FORMT" -bb1 || `printf "[ ${RED}FAILED$END ]\n" && exit 1`
+  printf "[ ${GREEN}OK$END ]\n"
 }
 
 Build(){
