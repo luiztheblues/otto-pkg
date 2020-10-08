@@ -1,6 +1,5 @@
 #!/usr/bin/env ksh 
 # Do arrays actually work on Ksh? I think that array bug is a Public Domain Ksh fault, may i try it on ksh93 later.
-# vim: noai:ts=4:sw=4:expandtab
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
 # Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent (und nun HTTP) herunterlädt.
@@ -19,15 +18,13 @@
 
 # TO DO:
 # Terminar as funções pelo menos;
-# Otimizar o máximo possível;
+# Optimize it;
 # Make it portable;
 # Fix identation  (tab = two spaces);
 # Write the remove() and install() function (and finish others!);
 # Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file;
-# Fix lib txtampel;
 # Fix the inconsistent code style;
 # Create a log function, for save every operation log in /var/otto/system/logs/otto_`date`. A little useless for now.
-# 
 
 ############# Export C locale #############
 export LANG=C
@@ -136,6 +133,17 @@ Build(){
   /bin/sh "$SRCDIR"/"$PKGNM"/install/pkgbuild
 }
 
+GenerateLocalpkgmap(){
+  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkgmap << EOF
+   `< "$SRCDIR"/"$PKGNM"/install/pkgmap`
+  EOF
+} # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
+
+GenerateLocalpkginfo(){
+  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo
+   `< "$SRCDIR"/"$PKGNM"/pkginfo`
+}
+
 AutoClean(){
   printf "Autocleaning...\n" ; rm -ri "$SRCDIR/old/*"
 }
@@ -184,13 +192,9 @@ DownwloadPackage(){
 InstallPackage(){
   Uncompress
   Build
-  mkdir /var/otto/installed/pkg/OTTO$PKG
-  GenerateLocalpkgmap(){
-    cat > /var/otto/installed/pkg/OTTO$PKG/pkgmap << EOF
-    `cat "$SRCDIR"/"$PKGNM"/install/pkgmap`
-    EOF
-  } # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
-  # I need to write a GenerateLocalpkginfo function too, but not now (now it's 10:25 AM and i didn't sleep yet).
+  mkdir /var/otto/installed/pkg/OTTO"$PKG"
+  GenerateLocalpkgmap
+  GenerateLocalpkginfo
 }
 
 RemovePackage(){
@@ -198,15 +202,15 @@ RemovePackage(){
     PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
     CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
     printf "Removing $CATEGORY/$PKG"
-    < /var/otto/installed/pkg/"$PKG"/pkgmap /usr/bin/xargs rm -rv  # Wait, do this work? Really awesome to see that i didn't need that cat.
+    < /var/otto/installed/pkg/OTTO"$PKG"/pkgmap /usr/bin/xargs rm -rv  # Wait, do this work? Really awesome to see that i didn't need that cat.
     sed -i "/$PKGNM/d" /var/otto/installed/contents
   done
 }
 
 Update(){
   chdir "$PKGDIR"
-  /usr/bin/curl -OD -# "$MIRROR/pkgindex$INDEXFILE"
-  /usr/bin/7z x "pkgindex$INDEXFILE"
+  /usr/bin/curl -OD -# "$MIRROR"/pkgindex"$INDEXFILE"
+  /usr/bin/7z x pkgindex"$INDEXFILE"
   printf "Package index updated.\n"
   exit 0
 }
@@ -246,7 +250,7 @@ Help(){
     export LC_ALL=${LANG}
     printf "\
 ${GREEN}Otto $VER, ein paketmanager.$END
-${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkgs>| -r (-d|-b) <pkg>$PKG_FORMT$END
+${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkg>| -r (-d|-b) <pkg>$PKG_FORMT$END
 ${GREEN}> help (-H)    - Show this help message.
 > info (-I)    - List info about the software.
 > find (-f)    - Search for content in Otto's files.
