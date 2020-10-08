@@ -1,5 +1,6 @@
 #!/usr/bin/env ksh 
 # Do arrays actually work on Ksh? I think that array bug is a Public Domain Ksh fault, may i try it on ksh93 later.
+# vim: noai:ts=4:sw=4:expandtab
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
 # Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent (und nun HTTP) herunterlädt.
@@ -18,13 +19,14 @@
 
 # TO DO:
 # Terminar as funções pelo menos;
-# Optimize it;
+# Otimizar o máximo possível;
 # Make it portable;
 # Fix identation  (tab = two spaces);
 # Write the remove() and install() function (and finish others!);
 # Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file;
 # Fix the inconsistent code style;
 # Create a log function, for save every operation log in /var/otto/system/logs/otto_`date`. A little useless for now.
+# 
 
 ############# Export C locale #############
 export LANG=C
@@ -134,26 +136,24 @@ Build(){
 }
 
 GenerateLocalpkgmap(){
-  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkgmap << EOD
+  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkgmap << EOF
    `< "$SRCDIR"/"$PKGNM"/install/pkgmap`
-  EOD
+  EOF
 } # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
 
 GenerateLocalpkginfo(){
-  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo <<< EOD
+  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo
    `< "$SRCDIR"/"$PKGNM"/pkginfo`
-   
 }
 
 AutoClean(){
-  printf "Cleaning "$SRCDIR"/"$PKGNM" sources...\n" ; rm -rvi "$SRCDIR"/"$PKGNM"/"*"
+  printf "Autocleaning...\n" ; rm -ri "$SRCDIR/old/*"
 }
 
 DownwloadPackage(){
   if [ "$SYNC_TYPE" = "bittorrent" ]
   then
     for TORRENT in "$@"; do
-      PKGNM=$TORRENT
       PKG=`printf "$TORRENT\n" | cut -d "/" -f 2`
       CATEGORY=`printf "$TORRENT\n" | cut -d "/" -f 1`  
       /usr/bin/pico-torrent -s -f "$PKGDIR/$TORRENT/pkgp2p" -d "$SRCDIR"
@@ -197,7 +197,6 @@ InstallPackage(){
   mkdir /var/otto/installed/pkg/OTTO"$PKG"
   GenerateLocalpkgmap
   GenerateLocalpkginfo
-  printf "$PKGNM  $VERSION\n" > /var/otto/installed/contents # I need to think of a better layout, but it will be this for while
 }
 
 RemovePackage(){
@@ -212,8 +211,8 @@ RemovePackage(){
 
 Update(){
   chdir "$PKGDIR"
-  /usr/bin/curl -OD -# "$MIRROR"/pkgindex"$INDEXFILE"
-  /usr/bin/7z x pkgindex"$INDEXFILE"
+  /usr/bin/curl -OD -# "$MIRROR/pkgindex$INDEXFILE"
+  /usr/bin/7z x "pkgindex$INDEXFILE"
   printf "Package index updated.\n"
   exit 0
 }
