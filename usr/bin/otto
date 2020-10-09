@@ -254,7 +254,7 @@ Help(){
     export LC_ALL=${LANG}
     printf "\
 ${GREEN}Otto, eine Paketverwaltungs-Toolchain.$END
-${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkg>| -r (-d|-b) <pkg>$PKG_FORMT$END
+${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkg>| -r (-d|-u|-b) <pkg>$PKG_FORMT$END
 ${GREEN}> help (-H)    - Show this help message.
 > info (-I)    - List info about the software.
 > find (-f)    - Search for content in Otto's files.
