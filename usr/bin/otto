@@ -38,7 +38,7 @@ alias chdir='cd'
 
 ############# Program Specifications ######
 export PROG='Otto'
-export VER='0.2'
+# ProgVersion 0.2
 export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
@@ -134,17 +134,17 @@ Build(){
   /bin/sh "$SRCDIR"/"$PKGNM"/install/makebuild
 }
 
-#GenerateLocalpkgmap(){
-#  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkgmap << EOD
-#   `cat "$SRCDIR"/"$PKGNM"/install/pkgmap`
-#  EOD
-#} # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
+GenerateLocalpkgmap(){
+cat > /var/otto/installed/pkg/OTTO"$PKG"/pkgmap <<EOD
+`cat "$SRCDIR"/"$PKGNM"/install/pkgmap`
+EOD
+} # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
 
-#GenerateLocalpkginfo(){
-#  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo << EOD
-#   `cat "$SRCDIR"/"$PKGNM"/pkginfo`
-#  EOD 
-#}
+GenerateLocalpkginfo(){
+cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo <<EOD
+`cat "$SRCDIR"/"$PKGNM"/pkginfo`
+EOD
+}
 
 AutoClean(){
   printf "Cleaning "$SRCDIR"/"$PKGNM" sources...\n" ; rm -rvi "$SRCDIR"/"$PKGNM"/"*"
@@ -253,7 +253,7 @@ Help(){
     export LANG=en_US.UTF-8
     export LC_ALL=${LANG}
     printf "\
-${GREEN}Otto $VER, ein paketmanager.$END
+${GREEN}Otto, eine Paketverwaltungs-Toolchain.$END
 ${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkg>| -r (-d|-b) <pkg>$PKG_FORMT$END
 ${GREEN}> help (-H)    - Show this help message.
 > info (-I)    - List info about the software.
