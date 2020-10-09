@@ -117,7 +117,7 @@ CheckDisk(){
 CheckDependencies(){
   for DEPS in $DEPENDENCIES; do
     printf "I didn't finish this function yet, lol.\nIdk how to do it yet too... How can i check name-per-name @ /var/otto/installed/contents?\nGrep doesn't seems to work..."
-  done    
+  done 
 }
 
 ##############  Sure i am, dad.  ############
@@ -130,20 +130,21 @@ Uncompress(){
 }
 
 Build(){
-  /bin/sh "$SRCDIR"/"$PKGNM"/install/pkgbuild
+  /bin/sh "$SRCDIR"/"$PKGNM"/install/checkinstall
+  /bin/sh "$SRCDIR"/"$PKGNM"/install/makebuild
 }
 
-GenerateLocalpkgmap(){
-  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkgmap << EOD
-   `< "$SRCDIR"/"$PKGNM"/install/pkgmap`
-  EOD
-} # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
+#GenerateLocalpkgmap(){
+#  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkgmap << EOD
+#   `cat "$SRCDIR"/"$PKGNM"/install/pkgmap`
+#  EOD
+#} # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
 
-GenerateLocalpkginfo(){
-  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo <<< EOD
-   `< "$SRCDIR"/"$PKGNM"/pkginfo`
-   
-}
+#GenerateLocalpkginfo(){
+#  cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo << EOD
+#   `cat "$SRCDIR"/"$PKGNM"/pkginfo`
+#  EOD 
+#}
 
 AutoClean(){
   printf "Cleaning "$SRCDIR"/"$PKGNM" sources...\n" ; rm -rvi "$SRCDIR"/"$PKGNM"/"*"
