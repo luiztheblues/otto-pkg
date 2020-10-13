@@ -37,15 +37,15 @@ alias chdir='cd'
 ##############     END       ##############
 
 ############# Program Specifications ######
-export PROG='Otto'
-# ProgVersion 0.2
+# Program Otto
+# Version 0.3
 export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
 export HOST_OS=${HKERNEL}
 ##############     END       ##############
 
-############## Include Files  ##############
+############## Include Files ##############
 . /usr/lib/otto/colors.shi
 . /usr/lib/otto/blink.shi
 . /usr/lib/otto/txtwait.shi
@@ -60,7 +60,7 @@ export HOST_OS=${HKERNEL}
   exit 1
   fi
 
-############## Script Functions ##############
+############## Script Functions ###########
 
 ############ ARE YA CHECKING SON? #########
 Checkroot(){
@@ -117,7 +117,8 @@ CheckDisk(){
 CheckDependencies(){
   for DEPS in $DEPENDENCIES; do
     printf "I didn't finish this function yet, lol.\nIdk how to do it yet too... How can i check name-per-name @ /var/otto/installed/contents?\nGrep doesn't seems to work..."
-  done 
+   printf "FOUND A SOLUTION! I will write it later.\n" 
+ done 
 }
 
 ##############  Sure i am, dad.  ############
