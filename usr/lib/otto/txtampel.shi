@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Depends: colors.i
 # Fork of the _SPINNER() function by Jefferson Rocha <jeffersoncarneiro@slackjeff.com.br> @ bananapkg
 
