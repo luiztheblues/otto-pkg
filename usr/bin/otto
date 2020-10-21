@@ -1,5 +1,6 @@
 #!/usr/bin/env ksh 
 # Do arrays actually work on Ksh? I think that array bug is a Public Domain Ksh fault, may i try it on ksh93 later.
+# Ok, i will remember to patch it later.
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
 # Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent (und nun HTTP) herunterlädt.
@@ -52,11 +53,16 @@ export HOST_OS=${HKERNEL}
 . /usr/lib/otto/posix-alt.shi
 ##############     END       ##############
 
+############## Global Variables/Subshells #
+PKG_FILENAME=`sed 's/ /./g' <<< $NAME`
+
+##############     END       ##############
+
 # Load the configuration file:
   if [ -f "/etc/make.cfg" ]; then
     . "/etc/make.cfg"
   else
-    printf "${RED}ERROR$END: make.cfg not found!\n ${YELLOW}Copy this file from the installation media (or download it from the offcial repo) and configure it.$END\n"
+    printf "${RED}ERROR$END: make.cfg not found!\nCopy this file from the installation media (or download it from the offcial repo) and configure it.\n"
   exit 1
   fi
 
@@ -65,14 +71,14 @@ export HOST_OS=${HKERNEL}
 ############ ARE YA CHECKING SON? #########
 Checkroot(){
   if [ "`id -u`" -ne 0 ]; then
-    printf "It looks like you are not logged into ${YELLOW}toor$END nor ${RED}root$END user...\nWould you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system?\n${BLK_RED}WARNING$END: Some packages ${RED}cannot$END be installed on the highest userland layer ${RED}under any circunstances$END.\n[${GREEN}Y$END/${RED}N$END]? "
+    printf "${YELLOW}WARNING$END: It looks like you are not logged into toor nor root user...\nWould you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system?\n${YELLOW}WARNING$END: Some packages ${BOLD}cannot$END be installed on the highest userland layer under any circunstances.\nRegarding the first (and only) question: [Y,N]? "
     read -r ANTWORTEN
     if grep -iq "^y" <<< "$ANTWORTEN" ;then
       export USRDIR=${HIUSR}
       export USRBIN=${HIUSRBIN}
       export ETC=${HIETC}
       export SRCDIR=${HISRCDIR}
-      export DIRISTATE=HI
+      export DIRISTATE=2
     else
       printf "Alright so, exiting...\n"
       exit 130
@@ -82,7 +88,7 @@ Checkroot(){
     export USRBIN=${LOUSRBIN}
     export ETC=${LOETC}
     export SRCDIR=${LOSRCDIR}
-    export DIRISTATE=LO
+    export DIRISTATE=1
   fi
 }
 
@@ -94,7 +100,7 @@ CheckNetwork(){
     printf "[ ${GREEN}OK$END ]\n"
   else
     printf "[ ${RED}FAILED$END ]\n"
-    printf "${RED}ERROR$END: Apparently, this box ${RED}isn't connected$END to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains everything necessary to install the program), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}otto dig [raw|-r]$END.\nIf you expected to have networking on this box, ${BLK_RED}do some checks$BLK_END. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
+    printf "${RED}ERROR$END: Apparently, this box isn't connected to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains everything necessary to install the program), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}otto dig [raw|-r]$END.\nIf you expected to have networking on this box, do some checks. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
     exit 1
   fi
 }
@@ -107,11 +113,17 @@ CheckParameters(){
 }
 
 CheckDisk(){
-  set -A DSKFUNC 8 11 14 # Advice for new developers/ShellCheck users: set is a Zsh/Ksh Shell built-in, not the binary itself. I'm using it here for setting a array. May i change it later for portability, but not now.
-  BENUTZT=${DSKFUNC[1]} # Benutzt disk (used disk)
-  VERFDSK=${DSKFUNC[2]} # Verfügbar disk (avaible disk)
-  GROSSEDSK=${DSKFUNC[0]} # disk Größe (disk size)
-  CHKDSK_PIPELINE=`df -h / | tail -1 | grep '[0-9]''[G,%]' | cut --delimiter=" " -f`
+  BENUTZT=`df -m / | tail -1 | grep '[0-9]' | cut --delimiter=" " -f 11`
+  VERFDSK=`df -m / | tail -1 | grep '[0-9]' | cut --delimiter=" " -f 16`
+  GROSSEDSK=$[$BENUTZT + $VERFDSK]
+  PKGGROSSE=`bc <<< "scale=3; $(du -sk $SRCDIR/$CATEGORY/$PKG_FILENAME$PKG_FORMT | awk '{print $1}')/1000"`
+  printf "\
+Estimated total disk space: "$GROSSEDSK"MB
+Estimated used space: "$VERFDSK"MB
+Estimated space available: "$BENUTZT"MB
+Estimated space to be consumed (build files): "$PKGGROSSE"MB
+Estimated space after install: `bc <<< "scale=3; $VERFDSK - $PKGGROSSE"`MB
+"  
 }
 
 CheckDependencies(){
@@ -124,10 +136,9 @@ CheckDependencies(){
 ##############  Sure i am, dad.  ############
 
 Uncompress(){
-  printf "Extracting $PKGNM$PKG_FORMT"
+  printf "Extracting $PKG_FILENAME$PKG_FORMT"
   txtwait
-  /usr/bin/7z x "$SRCDIR"/"$PKGNM$PKG_FORMT" -bb1 || `printf "[ ${RED}FAILED$END ]\n" && exit 1`
-  printf "[ ${GREEN}OK$END ]\n"
+  /usr/bin/7z x "$SRCDIR"/"$CATEGORY"/"$PKG_FILENAME""$PKG_FORMT" -bb1
 }
 
 Build(){
@@ -141,30 +152,33 @@ cat > /var/otto/installed/pkg/OTTO"$PKG"/pkgmap <<EOD
 EOD
 } # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
 
-GenerateLocalpkginfo(){
-cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo <<EOD
-`cat "$SRCDIR"/"$PKGNM"/pkginfo`
-EOD
-}
+#GenerateLocalpkginfo(){
+#cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo <<EOD
+#`cat "$SRCDIR"/"$PKGNM"/pkginfo`
+#EOD
+#}
 
 AutoClean(){
   printf "Cleaning "$SRCDIR"/"$PKGNM" sources...\n" ; rm -rvi "$SRCDIR"/"$PKGNM"/"*"
 }
 
 DownwloadPackage(){
+  printf "Packages to install: ${#@}\n"
   if [ "$SYNC_TYPE" = "bittorrent" ]
   then
     for TORRENT in "$@"; do
-      PKGNM=$TORRENT
+      PKGNM="$TORRENT"
       PKG=`printf "$TORRENT\n" | cut -d "/" -f 2`
-      CATEGORY=`printf "$TORRENT\n" | cut -d "/" -f 1`  
-      /usr/bin/pico-torrent -s -f "$PKGDIR/$TORRENT/pkgp2p" -d "$SRCDIR"
+      CATEGORY=`printf "$TORRENT\n" | cut -d "/" -f 1`
+      . "$PKGDIR"/"$TORRENT"/pkginfo
+      /usr/bin/pico-torrent -s -f "$PKGDIR"/"$TORRENT"/pkgp2p -d "$SRCDIR"
     done
   elif [ "$SYNC_TYPE" = "http" ] || [ "$SYNC_TYPE" = "ftp" ]
   then
     for PKGNM in "$@"; do
       PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
       CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
+      . "$PKGDIR/$PKGNM/pkginfo"
       /usr/bin/curl -# -O "`cat "$PKGDIR/$PKG/pkglink"`"
     done
   else
@@ -194,11 +208,12 @@ DownwloadPackage(){
 #}
 
 InstallPackage(){
+  . "$PKGDIR"/"$PKGNM"/pkginfo
   Uncompress
   Build
   mkdir /var/otto/installed/pkg/OTTO"$PKG"
   GenerateLocalpkgmap
-  GenerateLocalpkginfo
+# GenerateLocalpkginfo
   printf "$PKGNM  $VERSION\n" > /var/otto/installed/contents # I need to think of a better layout, but it will be this for while
 }
 
@@ -221,8 +236,7 @@ Update(){
 }
 
 MakePackage(){
-  printf "${RED}ERROR:$END function not ready yet.\n"
-  exit 1
+  
 }
 
 ListPackages(){
