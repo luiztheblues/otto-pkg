@@ -235,9 +235,9 @@ Update(){
   exit 0
 }
 
-MakePackage(){
+#MakePackage(){
   
-}
+#}
 
 ListPackages(){
   if [ -f "/var/otto/installed/contents" ]; then
