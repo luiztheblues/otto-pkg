@@ -113,16 +113,17 @@ CheckParameters(){
 }
 
 CheckDisk(){
-  BENUTZT=`df -m / | tail -1 | grep '[0-9]' | cut --delimiter=" " -f 11`
-  VERFDSK=`df -m / | tail -1 | grep '[0-9]' | cut --delimiter=" " -f 16`
-  GROSSEDSK=$[$BENUTZT + $VERFDSK]
-  PKGGROSSE=`bc <<< "scale=3; $(du -sk $SRCDIR/$CATEGORY/$PKG_FILENAME$PKG_FORMT | awk '{print $1}')/1000"`
+  BENUTZT=`df -m / | tail -1 | grep '[0-9]' | awk '{print $3}'`
+  DSKVERF=`df -m / | tail -1 | grep '[0-9]' | awk '{print $4}'`
+  DSKGROSSE=$[$BENUTZT + $VERFDSK]
+  PKGGROSSE_FILE=`du -sk $SRCDIR/$CATEGORY/$PKG_FILENAME$PKG_FORMT | awk '{print $1}'`
+  PKGGROSSE_CALC=`bc <<< "scale=3; $PKGGROSSE_FILE/1000"`
   printf "\
-Estimated total disk space: "$GROSSEDSK"MB
+Estimated total disk space: "$DSKGROSSE"MB
 Estimated used space: "$VERFDSK"MB
 Estimated space available: "$BENUTZT"MB
-Estimated space to be consumed (build files): "$PKGGROSSE"MB
-Estimated space after install: `bc <<< "scale=3; $VERFDSK - $PKGGROSSE"`MB
+Estimated space to be consumed (build files): "$PKGGROSSE_CALC"MB
+Estimated space after install: `bc <<< "scale=3; $DSKVERF - $PKGGROSSE_CALC"`MB
 "  
 }
 
