@@ -73,7 +73,7 @@ Checkroot(){
   if [ "`id -u`" -ne 0 ]; then
     printf "${YELLOW}WARNING$END: It looks like you are not logged into toor nor root user...\nWould you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system?\n${YELLOW}WARNING$END: Some packages ${BOLD}cannot$END be installed on the highest userland layer under any circunstances.\nRegarding the first (and only) question: [Y,N]? "
     read -r ANTWORTEN
-    if grep -iq "^y" <<< "$ANTWORTEN" ;then
+    if grep -iq '^y' <<< "$ANTWORTEN"; then
       export USRDIR=${HIUSR}
       export USRBIN=${HIUSRBIN}
       export ETC=${HIETC}
@@ -95,8 +95,7 @@ Checkroot(){
 CheckNetwork(){
   printf "Checking network connection"
   txtwait
-  if  printf "GET luiznet.tk HTTP/1.0\n\n" | timeout 12 /usr/bin/netcat luiznet.tk 80 > /dev/null 2>&1
-  then
+  if  `timeout 12 /usr/bin/netcat luiznet.tk 80 <<< "GET luiznet.tk HTTP/1.0\n\n" > /dev/null 2>&1`; then
     printf "[ ${GREEN}OK$END ]\n"
   else
     printf "[ ${RED}FAILED$END ]\n"
@@ -123,7 +122,7 @@ Estimated total disk space: "$DSKGROSSE"MB
 Estimated used space: "$VERFDSK"MB
 Estimated space available: "$BENUTZT"MB
 Estimated space to be consumed (build files): "$PKGGROSSE_CALC"MB
-Estimated space after install: `bc <<< "scale=3; $DSKVERF - $PKGGROSSE_CALC"`MB
+Estimated space after install: `bc <<< "'scale=3;' $DSKVERF - $PKGGROSSE_CALC"`MB
 "  
 }
 
