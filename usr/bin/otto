@@ -5,7 +5,7 @@
 
 # Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent (und nun HTTP) herunterlädt.
 
-# BSD 2-Clause License
+# Caldera License
 # Copyright (c) 2019-2020, Luiz Antônio Rangel et Projeto Pindorama
 # Read LICENSE @ master branch root (GitHub) for the complete license.
 
@@ -63,7 +63,7 @@ PKG_FILENAME=`sed 's/ /./g' <<< $NAME`
     . "/etc/make.cfg"
   else
     printf "${RED}ERROR$END: make.cfg not found!\nCopy this file from the installation media (or download it from the offcial repo) and configure it.\n"
-  exit 1
+    exit 1
   fi
 
 ############## Script Functions ###########
@@ -127,10 +127,6 @@ Estimated space after install: `bc <<< "'scale=3;' $DSKVERF - $PKGGROSSE_CALC"`M
 }
 
 CheckDependencies(){
-  for DEPS in $DEPENDENCIES; do
-    printf "I didn't finish this function yet, lol.\nIdk how to do it yet too... How can i check name-per-name @ /var/otto/installed/contents?\nGrep doesn't seems to work..."
-   printf "FOUND A SOLUTION! I will write it later.\n" 
- done 
 }
 
 ##############  Sure i am, dad.  ############
@@ -227,19 +223,19 @@ RemovePackage(){
 
 Update(){
   chdir "$PKGDIR"
-  /usr/bin/curl -OD -# "$MIRROR"/pkgindex"$INDEXFILE"
+  /usr/bin/curl -O -OD "$MIRROR"/pkgindex"$INDEXFILE"
   /usr/bin/7z x pkgindex"$INDEXFILE"
   printf "Package index updated.\n"
   exit 0
 }
 
-#MakePackage(){
+MakePackage(){
   
-#}
+}
 
 ListPackages(){
   if [ -f "/var/otto/installed/contents" ]; then
-     lines "/var/otto/installed/contents"
+    lines "/var/otto/installed/contents"
     printf '%s\n' "$lines installed packages."
     exit 0
   else
