@@ -8,7 +8,7 @@
 < Applied from the following example: https://www.libtorrent.org/python_binding.html
 < License:
 < Copyright © 2020 Projeto Pindorama.
-< Otto_PKG is under BSD Clause-2 license (Simplified).
+< Otto_PKG is under Caldera license.
 < 
 < Dependencies:
 < 
@@ -90,7 +90,7 @@
 > Adaptado a partir do seguinte exemplo: https://www.libtorrent.org/python_binding.html
 > Licença:
 > Copyright © 2020 Projeto Pindorama.
-> OTTO_PKG está sobre a Licença BSD Clause-2 (Simplificada).
+> OTTO_PKG está sobre a Licença Caldera.
 > 
 > Dependências:
 > 
