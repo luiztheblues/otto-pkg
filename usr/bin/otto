@@ -127,6 +127,9 @@ Estimated space after install: `bc <<< "scale=3; $DSKVERF - $PKGGROSSE_CALC"`MB
 }
 
 CheckDependencies(){
+  printf "\
+Dependencies for $PKGNM: $DEPENDENCIES
+"
 }
 
 ##############  Sure i am, dad.  ############
