@@ -14,6 +14,10 @@
 # Libtorrent and Libtorrent bindings for Python 3.x;
 # cURL;
 # POSIX 7-Zip (p7zip);
+# Sed;
+# Awk;
+# Cut;
+# Grep;
 # Otto's libaries.
 ##############     END       ##############
 
@@ -54,7 +58,7 @@ export HOST_OS=${HKERNEL}
 ##############     END       ##############
 
 ############## Global Variables/Subshells #
-PKG_FILENAME=`sed 's/ /./g' <<< $NAME`
+PKG_FILENAME=`/usr/bin/sed 's/ /./g' <<< $NAME`
 
 ##############     END       ##############
 
@@ -73,7 +77,7 @@ Checkroot(){
   if [ "`id -u`" -ne 0 ]; then
     printf "${YELLOW}WARNING$END: It looks like you are not logged into toor nor root user...\nWould you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system?\n${YELLOW}WARNING$END: Some packages ${BOLD}cannot$END be installed on the highest userland layer under any circunstances.\nRegarding the first (and only) question: [Y,N]? "
     read -r ANTWORTEN
-    if grep -iq '^y' <<< "$ANTWORTEN"; then
+    if /usr/bin/grep -iq '^y' <<< "$ANTWORTEN"; then
       export USRDIR=${HIUSR}
       export USRBIN=${HIUSRBIN}
       export ETC=${HIETC}
@@ -112,17 +116,17 @@ CheckParameters(){
 }
 
 CheckDisk(){
-  BENUTZT=`df -m / | tail -1 | grep '[0-9]' | awk '{print $3}'`
-  DSKVERF=`df -m / | tail -1 | grep '[0-9]' | awk '{print $4}'`
+  BENUTZT=`/usr/bin/df -m / | /usr/bin/tail -1 | /usr/bin/grep '[0-9]' | /usr/bin/awk '{print $3}'`
+  DSKVERF=`/usr/bin/df -m / | /usr/bin/tail -1 | /usr/bin/grep '[0-9]' | /usr/bin/awk '{print $4}'`
   DSKGROSSE=$[$BENUTZT + $DSKVERF]
-  PKGGROSSE_FILE=`du -sk $SRCDIR/$CATEGORY/$PKG_FILENAME$PKG_FORMT | awk '{print $1}'`
-  PKGGROSSE_CALC=`bc <<< "scale=3; $PKGGROSSE_FILE/1000"`
+  PKGGROSSE_FILE=`/usr/bin/du -sk $SRCDIR/$CATEGORY/$PKG_FILENAME$PKG_FORMT | /usr/bin/awk '{print $1}'`
+  PKGGROSSE_CALC=`/usr/bin/bc <<< "scale=3; $PKGGROSSE_FILE/1000"`
   printf "\
 Estimated total disk space: "$DSKGROSSE"MB
 Estimated used space: "$DSKVERF"MB
 Estimated space available: "$BENUTZT"MB
 Estimated space to be consumed (build files): "$PKGGROSSE_CALC"MB
-Estimated space after install: `bc <<< "scale=3; $DSKVERF - $PKGGROSSE_CALC"`MB
+Estimated space after install: `/usr/bin/bc <<< "scale=3; $DSKVERF - $PKGGROSSE_CALC"`MB
 "  
 }
 
@@ -131,7 +135,7 @@ CheckRawPackage(){
     for I in "$@; do
       # For uncompress
       BASENAME=`basename $I`
-      PKG_FILENAME=`sed 's/.psl//' <<< $I`
+      PKG_FILENAME=`/usr/bin/sed 's/.psl//' <<< $I`
       EXTR_CMD=`/usr/bin/7z x $I -o "$SRCDIR"/uncompressed-"$PKG_FILENAME"`
       EXTR_MSG="Extracting $BASENAME"
       # Source pkginfo
@@ -143,7 +147,6 @@ CheckRawPackage(){
     # For uncompress
     EXTR_CMD=`/usr/bin/7z x "$SRCDIR"/"$PKG_FILENAME""$PKG_FORMT" -o "SRCDIR"/uncompressed-"$PKG_FILENAME" -bb1`
     EXTR_MSG="Extracting $PKG_FILENAME$PKG_FORMT"
-
   done
 }
 
@@ -182,18 +185,18 @@ AutoClean(){
 
 DownwloadPackage(){
   printf "Packages to install: ${#@}\n"
-  if [ "$SYNC_TYPE" = "bittorrent" ]; then
+  if [ "$SYNC_TYPE" = 'bittorrent' ]; then
     for TORRENT in "$@"; do
       PKGNM="$TORRENT"
-      PKG=`printf "$TORRENT\n" | cut -d "/" -f 2`
-      CATEGORY=`printf "$TORRENT\n" | cut -d "/" -f 1`
+      PKG=`printf "$TORRENT\n" | cut -d '/' -f 2`
+      CATEGORY=`printf "$TORRENT\n" | cut -d '/' -f 1`
       . "$PKGDIR"/"$TORRENT"/pkginfo
       /usr/bin/pico-torrent -s -f "$PKGDIR"/"$TORRENT"/pkgp2p -d "$SRCDIR"
     done
-  elif [ "$SYNC_TYPE" = "http" ] || [ "$SYNC_TYPE" = "ftp" ]; then
+  elif [ "$SYNC_TYPE" = 'http' ] || [ "$SYNC_TYPE" = 'ftp' ]; then
     for PKGNM in "$@"; do
-      PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
-      CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
+      PKG=`printf "$PKGNM\n" | /usr/bin/cut -d '/' -f 2`
+      CATEGORY=`printf "$PKGNM\n" | /usr/bin/cut -d '/' -f 1`
       . "$PKGDIR/$PKGNM/pkginfo"
       chdir $SRCDIR && { /usr/bin/curl -O -# "`cat "$PKGDIR/$PKG/pkglink"`" ; cd -;}
     done
@@ -235,11 +238,11 @@ InstallPackage(){
 
 RemovePackage(){
   for PKGNM in "$@"; do 
-    PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
-    CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
+    PKG=`printf "$PKGNM\n" | /usr/bin/cut -d "/" -f 2`
+    CATEGORY=`printf "$PKGNM\n" | /usr/bin/cut -d "/" -f 1`
     printf "Removing $CATEGORY/$PKG"
     < /var/otto/installed/pkg/OTTO"$PKG"/pkgmap /usr/bin/xargs rm -rv  # Wait, do this work? Really awesome to see that i didn't need that cat.
-    sed -i "/$PKGNM/d" /var/otto/installed/contents
+    /usr/bin/sed -i "/$PKGNM/d" /var/otto/installed/contents
   done
 }
 
@@ -275,7 +278,7 @@ Copyright (c) 2019-2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
 
 lib-txtampel und lib-posixalt (@ ${LOUSR}/lib/otto)
 Copyright (c) 2019-2020 Jefferson Rocha et MazonOS Team.
-Copyright (c) 2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
+Copyright (c) 2019-2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
 "
 exit 0
 }
