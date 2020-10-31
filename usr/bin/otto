@@ -126,34 +126,53 @@ Estimated space after install: `bc <<< "scale=3; $DSKVERF - $PKGGROSSE_CALC"`MB
 "  
 }
 
+CheckRawPackage(){
+  if [ "$RAW_PKG" = '1' ]; then
+    for I in "$@; do
+      # For uncompress
+      BASENAME=`basename $I`
+      PKG_FILENAME=`sed 's/.psl//' <<< $I`
+      EXTR_CMD=`/usr/bin/7z x $I -o "$SRCDIR"/uncompressed-"$PKG_FILENAME"`
+      EXTR_MSG="Extracting $BASENAME"
+      # Source pkginfo
+      SOURCE_PKGINFO=`. "$SRCDIR"/uncompressed-"$PKG_FILENAME"/pkginfo`
+    done
+  else 
+    # Source pkginfo (before extracting, because it's already in the system)
+    SOURCE_PKGINFO=`. "$PKGDIR"/"$PKGNM"/pkginfo`
+    # For uncompress
+    EXTR_CMD=`/usr/bin/7z x "$SRCDIR"/"$PKG_FILENAME""$PKG_FORMT" -o "SRCDIR"/uncompressed-"$PKG_FILENAME" -bb1`
+    EXTR_MSG="Extracting $PKG_FILENAME$PKG_FORMT"
+
+  done
+}
+
 CheckDependencies(){
-  printf "\
-Dependencies for $PKGNM: $DEPENDENCIES
-"
+  printf "Dependencies for $PKGNM: $DEPENDENCIES"
 }
 
 ##############  Sure i am, dad.  ############
 
 Uncompress(){
-  printf "Extracting $PKG_FILENAME$PKG_FORMT"
+  printf "%s\n" "$EXTR_MSG"
   txtwait
-  /usr/bin/7z x "$SRCDIR"/"$CATEGORY"/"$PKG_FILENAME""$PKG_FORMT" -bb1
+  $EXTR_CMD
 }
 
 Build(){
-  /bin/sh "$SRCDIR"/"$PKGNM"/install/checkinstall
-  /bin/sh "$SRCDIR"/"$PKGNM"/install/makebuild
+  /bin/sh "$SRCDIR"/uncompressed-"$PKG_FILENAME"/install/checkinstall
+  /bin/sh "$SRCDIR"/uncompressed-"$PKG_FILENAME"/install/makebuild
 }
 
 GenerateLocalpkgmap(){
 cat > /var/otto/installed/pkg/OTTO"$PKG"/pkgmap <<EOD
-`cat "$SRCDIR"/"$PKGNM"/install/pkgmap`
+`cat "$SRCDIR"/uncompressed-"$PKG_FILENAME"/pkgmap`
 EOD
 } # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
 
 #GenerateLocalpkginfo(){
 #cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo <<EOD
-#`cat "$SRCDIR"/"$PKGNM"/pkginfo`
+#`cat "$SRCDIR"/uncompressed-"$PKG_FILENAME"/pkginfo`
 #EOD
 #}
 
@@ -176,7 +195,7 @@ DownwloadPackage(){
       PKG=`printf "$PKGNM\n" | cut -d "/" -f 2`
       CATEGORY=`printf "$PKGNM\n" | cut -d "/" -f 1`
       . "$PKGDIR/$PKGNM/pkginfo"
-      /usr/bin/curl -O -# "`cat "$PKGDIR/$PKG/pkglink"`"
+      chdir $SRCDIR && { /usr/bin/curl -O -# "`cat "$PKGDIR/$PKG/pkglink"`" ; cd -;}
     done
   else
     printf "${RED}ERROR$END: SYNC_TYPE not set @ /etc/make.cfg.\n"
@@ -205,7 +224,7 @@ DownwloadPackage(){
 #}
 
 InstallPackage(){
-  . "$PKGDIR"/"$PKGNM"/pkginfo
+  $SOURCE_PKGINFO
   Uncompress
   Build
   mkdir /var/otto/installed/pkg/OTTO"$PKG"
@@ -266,7 +285,7 @@ Help(){
     export LC_ALL=${LANG}
     printf "\
 ${GREEN}Otto, eine Paketverwaltungs-Toolchain.$END
-${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkg>| -r (-d|-u|-b) <pkg>$PKG_FORMT$END
+${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkg>| (-d|-u|-b) -r <pkg>$PKG_FORMT$END
 ${GREEN}> help (-H)    - Show this help message.
 > info (-I)    - List info about the software.
 > find (-f)    - Search for content in Otto's files.
@@ -290,15 +309,18 @@ find(){
 
 ############## CASE DO SCRIPT #################
 case $1 in
-    help|-H*) Help ;;
-    info|-I*) Info ;;
-    find|-f*) find "$@" ;;
-    dig|-d*) Checkroot && InstallPackage "$@" ;;
-    bury|-b*) CheckParameters "$@" && Checkroot && RemovePackage "$@" ;;
-    up2date|-u*) Checkroot && Update "$@" ;;
-    mkpkg|-i*) Checkroot && MakePackage "$2" ;;
-    list|-l*) ListPackages "$@" ;;
-    chknet*) CheckNetwork;;
-    *) Help ;;
+  help|-H*) Help ;;
+  info|-I*) Info ;;
+  find|-f*) find "$@" ;;
+  dig|-d*) Checkroot && InstallPackage "$@" ;;
+  bury|-b*) CheckParameters "$@" && Checkroot && RemovePackage "$@" ;;
+  up2date|-u*) Checkroot && Update "$@" ;;
+  mkpkg|-i*) Checkroot && MakePackage "$2" ;;
+  list|-l*) ListPackages "$@" ;;
+  chknet*) CheckNetwork;;
+  *) Help ;;
+esac
+case $2 in
+  -r*) export RAW_PKG=1;;
 esac
 ############## FIM DO CASE ####################
