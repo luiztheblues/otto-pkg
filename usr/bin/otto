@@ -133,7 +133,7 @@ Estimated space after install: `/usr/bin/bc <<< "scale=3; $DSKVERF - $PKGGROSSE_
 
 CheckRawPackage(){
   if [ "$RAW_PKG" = '1' ]; then
-    for I in "$@; do
+    for I in "$@"; do # I've called "I" because i couldn't think of a name, sorry.
       # For uncompress
       BASENAME=`basename $I`
       PKG_FILENAME=`/usr/bin/sed 's/.psl//' <<< $I`
@@ -298,7 +298,7 @@ ${GREEN}Otto, eine Paketverwaltungs-Toolchain.$END
 ${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkg>| (-d|-u|-b) -r <pkg>$PKG_FORMT$END
 ${GREEN}> help (-H)    - Show this help message.
 > info (-I)    - List info about the software.
-> find (-f)    - Search for content in Otto's files.
+> find (-f)    - Search for content in Otto'\''s files.
 > dig  (-d)    - Install package.
 > bury (-b)    - Remove package.
 > up2date (-u) - Update repository index and packages.
@@ -311,8 +311,8 @@ exit 0
 }
 
 find(){
-    grep "$1" "`which otto`" "/etc/make.cfg"
-    exit 0
+  grep "$1" "`which otto`" "/etc/make.cfg"
+  exit 0
 }
 
 ##############     END      #################
@@ -331,6 +331,6 @@ case $1 in
   *) Help ;;
 esac
 case $2 in
-  -r*) export RAW_PKG=1;;
+  -r*) export RAW_PKG=1 ;;
 esac
 ############## FIM DO CASE ####################
