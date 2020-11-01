@@ -162,7 +162,7 @@ CheckDependencies(){
 
 Uncompress(){
   printf "%s\n" "$EXTR_MSG"
-  txtwait
+  txtwait &
   $EXTR_CMD
   /usr/bin/tar -vxf "$SRCDIR"/uncompressed-"$PKG_FILENAME"/src.tar && rm -v "$SRCDIR"/uncompressed-"$PKG_FILENAME"/src.tar
 }
@@ -247,7 +247,7 @@ RemovePackage(){
     PKG=`printf "$PKGNM\n" | /usr/bin/cut -d "/" -f 2`
     CATEGORY=`printf "$PKGNM\n" | /usr/bin/cut -d "/" -f 1`
     printf "Removing $CATEGORY/$PKG"
-    txtwait
+    txtwait &
     < /var/otto/installed/pkg/OTTO"$PKG"/pkgmap /usr/bin/xargs rm -r  # Wait, do this work? Really awesome to see that i didn't need that cat.
     /usr/bin/sed -i "/$PKGNM/d" /var/otto/installed/contents
   done
