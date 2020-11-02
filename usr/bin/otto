@@ -5,8 +5,8 @@
 
 # Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent (und nun HTTP) herunterlädt.
 
-# Caldera License
-# Copyright (c) 2019-2020, Luiz Antônio Rangel et Projeto Pindorama
+# Caldera License (a.k.a 4-Clause BSD).
+# Copyright (c) 2019-2020, Luiz Antônio Rangel et Projeto Pindorama;
 # Read LICENSE @ master branch root (GitHub) for the complete license.
 
 #############    Depends    ###############
@@ -133,8 +133,9 @@ Estimated space after install: `/usr/bin/bc <<< "scale=3; $DSKVERF - $PKGGROSSE_
 
 CheckRawPackage(){
   if [ "$RAW_PKG" = '1' ]; then
-    for I in "$@"; do # I've called "I" because i couldn't think of a name, sorry.
+    for PKGNM in "$@"; do # I've called "I" because i couldn't think of a name, sorry.
       # For uncompress
+      PKGNM="$I"
       BASENAME=`basename $I`
       PKG_FILENAME=`/usr/bin/sed 's/.psl//' <<< $I`
       EXTR_CMD=`/usr/bin/7z x $I -o "$SRCDIR"/uncompressed-"$PKG_FILENAME"`
@@ -161,7 +162,7 @@ CheckDependencies(){
 ##############  Sure i am, dad.  ############
 
 Uncompress(){
-  printf "%s\n" "$EXTR_MSG"
+  printf '%s\n' "$EXTR_MSG"
   txtwait &
   $EXTR_CMD
   /usr/bin/tar -vxf "$SRCDIR"/uncompressed-"$PKG_FILENAME"/src.tar && rm -v "$SRCDIR"/uncompressed-"$PKG_FILENAME"/src.tar
@@ -190,8 +191,8 @@ AutoClean(){
 
 DownwloadPackage(){
   if [ "$SYNC_TYPE" = 'bittorrent' ]; then
-    for TORRENT in "$@"; do
-      PKGNM="$TORRENT"
+    for PKGNM in "$@"; do
+      TORRENT="$PKGNM"
       PKG=`/usr/bin/cut -d '/' -f 2 <<< "$TORRENT"`
       CATEGORY=`/usr/bin/cut -d '/' -f 1 <<< "$TORRENT"`
       . "$PKGDIR"/"$TORRENT"/pkginfo
@@ -239,7 +240,7 @@ InstallPackage(){
   mkdir /var/otto/installed/pkg/OTTO"$PKG"
   GenerateLocalpkgmap
 # GenerateLocalpkginfo
-  printf "$PKGNM-$VERSION\n" > /var/otto/installed/contents # I need to think of a better layout, but it will be this for while
+  printf '%s\n' "$PKGNM-$VERSION" > /var/otto/installed/contents # I need to think of a better layout, but it will be this for while
 }
 
 RemovePackage(){
