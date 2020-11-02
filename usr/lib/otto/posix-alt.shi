@@ -4,41 +4,28 @@
 ## Shell alternatives to external processes
 ## pcat() by Jefferson Rocha <jeffersoncarneiro@slackjeff.com.br> @ bananapkg;
 ## lines() added by Caio Novais <caionov08@gmail.com>, but originally it's came from dylanaraps' pure-sh-bible (and yeah, i didn't knew this);
-## basename() by dylanaraps <https://github.com/dylanaraps> @ pure-sh-bible.
-## With exception of lines(), everything here was originally in MIT License, now sublicensed to Otto's license (see LICENSE).
+## basename() (and already cited lines()) by dylanaraps <https://github.com/dylanaraps> @ pure-sh-bible.
+## Everything here was originally in MIT License, now sublicensed to Caldera/4-Clause BSD license (see LICENSE).
 
 # basename
 basename() {
-  # "${1##*[!/]}": Remove all non-forward-slashes
-  # from the start of the string, leaving us with only
-  # the trailing slashes.
-  # "${1%%"${}"}:  Remove the result of the above
-  # substitution (a string of forward slashes) from the
-  # end of the original string.
   DIR=${1%${1##*[!/]}}
-
-  # Remove everything before the final forward-slash '/'.
   DIR=${DIR##*/}
-
-  # If a suffix was passed to the function, remove it from
-  # the end of the resulting string.
   DIR=${DIR%"$2"}
-
-  # Print the resulting string and if it is empty,
-  # print '/'.
   printf '%s\n' "${DIR:-/}"
 }
 
 # wc -l
-lines(){
-  while IFS=`read -r LINES` || [ -n "$LINES" ]; do
-    LINES=$["$LINES"+1]
+lines() {
+  while IFS= read -r LINE || [ -n "$LINE" ]; do
+    LINES=$((LINES+1))
   done < "$1"
+  printf '%s\n' "$LINES"
+  unset LINES
 }
 
 # cat
 pcat(){
-    # Tag para sinalizar que precisa parar.
   local EOF='EOF'
   INPUT=("${@:-"%"}")
   for I in "${INPUT[@]}"; do
@@ -48,7 +35,6 @@ pcat(){
       exec 3<&0
     fi
     while read -ru 3; do
-      # END OF FILE. Para identificar que precisa parar.
       [[ "$REPLY" = "$EOF" ]] && break
       printf '%s\n' "$REPLY"
     done
