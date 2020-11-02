@@ -1,55 +1,58 @@
-#!/usr/bin/env zsh
-# Bash isn't in the system by default.
+#!/bin/jsh
+# I think that jsh (OpenSolaris' POSIX Shell, now ported to Linux via Heirloom Project) can handle this.
 
 ## Shell alternatives to external processes
-## pcat and pgrep by Jefferson Rocha <jeffersoncarneiro@slackjeff.com.br> @ bananapkg
-## lines by Caio Novais <caionov08@gmail.com>
+## pcat() by Jefferson Rocha <jeffersoncarneiro@slackjeff.com.br> @ bananapkg;
+## lines() added by Caio Novais <caionov08@gmail.com>, but originally it's came from dylanaraps' pure-sh-bible (and yeah, i didn't knew this);
+## basename() by dylanaraps <https://github.com/dylanaraps> @ pure-sh-bible.
+## With exception of lines(), everything here was originally in MIT License, now sublicensed to Otto's license (see LICENSE).
+
+# basename
+basename() {
+  # "${1##*[!/]}": Remove all non-forward-slashes
+  # from the start of the string, leaving us with only
+  # the trailing slashes.
+  # "${1%%"${}"}:  Remove the result of the above
+  # substitution (a string of forward slashes) from the
+  # end of the original string.
+  DIR=${1%${1##*[!/]}}
+
+  # Remove everything before the final forward-slash '/'.
+  DIR=${DIR##*/}
+
+  # If a suffix was passed to the function, remove it from
+  # the end of the resulting string.
+  DIR=${DIR%"$2"}
+
+  # Print the resulting string and if it is empty,
+  # print '/'.
+  printf '%s\n' "${DIR:-/}"
+}
 
 # wc -l
 lines(){
-    while IFS=`read -r lines` || [ -n "$lines" ]; do
-        lines=`lines+1`
-    done < "$1"
-}
-
-# grep
-pgrep(){
-    # Se encontrar a linha ele retorna a expressão encontrada! com status 0
-    # se não é status 1.
-    # Para utilizar este módulo precisa ser passado o argumento seguido do arquivo.
-    # ou variável.
-    local expression="$1"
-    local receive="$2"
-
-    # Testando e buscando expressão.
-    if [[ -z "$expression" ]]; then
-        { printf 'MODULE pgrep ERROR. Not found variable $expression.\n'; exit 1 ;}
-    elif [[ -z "$receive" ]]; then
-{ printf 'MODULE pgrep ERROR. Not found variable $receive.\n'; exit 1 ;}
-    fi
-    while IFS= read line; do
-        [[ "$line" =~ $expression ]] && { printf "$line\n"; return 0;}
-    done < "$receive"
-    return 1
+  while IFS=`read -r LINES` || [ -n "$LINES" ]; do
+    LINES=$["$LINES"+1]
+  done < "$1"
 }
 
 # cat
 pcat(){
     # Tag para sinalizar que precisa parar.
-    local end_of_file='EOF'
-    INPUT=("${@:-"%"}")
-    for i in "${INPUT[@]}"; do
-        if [[ "$i" != "%" ]]; then
-            exec 3< "$i" || exit 1
-        else
-            exec 3<&0
-        fi
-        while read -ru 3; do
-            # END OF FILE. Para identificar que precisa parar.
-            [[ "$REPLY" = "$end_of_file" ]] && break
-            printf "$REPLY\n"
-        done
+  local EOF='EOF'
+  INPUT=("${@:-"%"}")
+  for I in "${INPUT[@]}"; do
+    if [[ "$I" != "%" ]]; then
+      exec 3< "$I" || exit 1
+      else
+      exec 3<&0
+    fi
+    while read -ru 3; do
+      # END OF FILE. Para identificar que precisa parar.
+      [[ "$REPLY" = "$EOF" ]] && break
+      printf '%s\n' "$REPLY"
     done
+  done
 }
 
 ##End of alternatives section
