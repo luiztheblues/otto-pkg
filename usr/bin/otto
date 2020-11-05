@@ -68,7 +68,7 @@ PKG_FILENAME=`/usr/bin/sed 's/ /./g' <<< $NAME`
   if [ -f "/etc/make.cfg" ]; then
     . "/etc/make.cfg"
   else
-    printf "${RED}ERROR$END: make.cfg not found!\nCopy this file from the installation media (or download it from the offcial repo) and configure it.\n"
+    printf '%s\n' "${RED}ERROR$END: make.cfg not found!\nCopy this file from the installation media (or download it from the offcial repo) and configure it."
     exit 1
   fi
 
@@ -86,7 +86,7 @@ Checkroot(){
       export SRCDIR=${HISRCDIR}
       export DIRISTATE=2
     else
-      printf "Alright so, exiting...\n"
+      printf '%s\n' "Alright so, exiting..."
       exit 130
     fi
   else
@@ -99,12 +99,12 @@ Checkroot(){
 }
 
 CheckNetwork(){
-  printf "Checking network connection"
+  printf '%s' "Checking network connection"
   txtwait
   if  `timeout 12 /usr/bin/netcat luiznet.tk 80 <<< "GET luiznet.tk HTTP/1.0\n\n" > /dev/null 2>&1`; then
-    printf "[ ${GREEN}OK$END ]\n"
+    printf '%s\n' "[ ${GREEN}O.K.$END ]"
   else
-    printf "[ ${RED}FAILED$END ]\n"
+    printf '%s\n' "[ ${RED}FAILED$END ]"
     printf "${RED}ERROR$END: Apparently, this box isn't connected to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains everything necessary to install the program), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}otto dig [raw|-r]$END.\nIf you expected to have networking on this box, do some checks. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
     exit 1
   fi
@@ -112,7 +112,7 @@ CheckNetwork(){
 
 CheckParameters(){
   if [ -z "$2" ]; then
-    printf "${RED}ERROR$END: Insufficient parameters.\n"
+    printf '%s\n' "${RED}ERROR$END: Insufficient parameters."
     exit 127
   fi
 }
@@ -172,6 +172,7 @@ Uncompress(){
 }
 
 Build(){
+  # Scripts for building the package shall be minimal and pure POSIX, so that's why we call them using the POSIX shell and not Zsh, Ksh or Bash (this one isn't even included in the base-system)
   /bin/sh "$SRCDIR"/uncompressed-"$PKG_FILENAME"/install/checkinstall
   /bin/sh "$SRCDIR"/uncompressed-"$PKG_FILENAME"/install/makebuild
 }
@@ -189,7 +190,11 @@ EOD
 #}
 
 AutoClean(){
-  printf "Cleaning "$CATEGORY"/"$PKG" sources.\n" ; rm -rvf "$SRCDIR"/"uncompressed-*" && rm -vf "$SRCDIR"/*"$PKG_FORMT"
+  if [ "$AUTOCLEAN" = 'YES' ]; then
+    printf '%s\n' "Cleaning "$CATEGORY"/"$PKG" sources." ; rm -rvf "$SRCDIR"/"uncompressed-*" && rm -vf "$SRCDIR"/*"$PKG_FORMT"
+  else
+    printf '%s\n' "${YELLOW}WARNING$END: Autocleaning is disabled, trash (build files and ${YELLOW}$PKG_FORMT$END's) will stay in the system (in the $SRCDIR) until some user with the needed permissions deletes them."
+  fi
 }
 
 DownwloadPackage(){
@@ -209,26 +214,6 @@ DownwloadPackage(){
  fi
 }
 
-# Rewrite this.
-#install(){
-#    params && chkroot && pkgdown
-#    printf "Extracting $PKGNM$PKG_FORMT...\n"
-#    /usr/bin/7z x "$SRCDIR/$PKGNM$PKG_FORMT" -bb1
-#    chdir $SRCDIR
-#    DIRLIST=$(ls)
-#    for dir in $DIRLIST; do
-#        FIRSTDIR=$(printf "$dir\n" | tr -d '$PKG_FORMT' | awk '{print $1}')
-#        chdir $FIRSTDIR
-#        compile
-#        printf "${GREEN}Final size of the build tree: $(du -sh .)$END"
-#        chdir ..
-#    done
-#    chdir $SRCDIR; mkdir -p old; mv * old
-#    printf "$PKGNM" >> $PKGDIR/package.installed
-#    [ $AUTOCLEAN = YES ] && autoclean
-#    exit 0
-#}
-
 InstallPackage(){
   printf "Packages to install: ${#@}\n" 
   for PKGNM in "$@"; do
@@ -244,24 +229,27 @@ InstallPackage(){
   # GenerateLocalpkginfo
     printf '%s\n' "$PKGNM-$VERSION" > /var/otto/installed/contents
   done
+  AutoClean
+  exit 0
 }
 
 RemovePackage(){
   for PKGNM in "$@"; do 
-    PKG=`printf "$PKGNM\n" | /usr/bin/cut -d "/" -f 2`
-    CATEGORY=`printf "$PKGNM\n" | /usr/bin/cut -d "/" -f 1`
-    printf "Removing $CATEGORY/$PKG"
+    PKG=`printf '%s' "$PKGNM" | /usr/bin/cut -d "/" -f 2`
+    CATEGORY=`printf '%s' "$PKGNM" | /usr/bin/cut -d "/" -f 1`
+    printf '%s' "Removing $CATEGORY/$PKG"
     txtwait &
     < /var/otto/installed/pkg/OTTO"$PKG"/pkgmap /usr/bin/xargs rm -r  # Wait, do this work? Really awesome to see that i didn't need that cat.
     /usr/bin/sed -i "/$PKGNM/d" /var/otto/installed/contents
   done
+  exit 0
 }
 
 Update(){
   chdir "$PKGDIR"
   /usr/bin/curl -O -OD "$MIRROR"/pkgindex"$INDEXFILE"
   /usr/bin/7z x pkgindex"$INDEXFILE"
-  printf "Package index updated.\n"
+  printf '%s\n' "Package index updated."
   exit 0
 }
 
@@ -272,7 +260,6 @@ MakePackage(){
 ListPackages(){
   if [ -f "/var/otto/installed/contents" ]; then
     lines "/var/otto/installed/contents"
-    printf '%s\n' "$lines installed packages."
     exit 0
   else
     printf "${BLK_RED}ERROR:$BLK_END package list not found! This isn't a good thing...\a\n"
@@ -281,15 +268,16 @@ ListPackages(){
 }
 
 Info(){ printf "\
-Otto-PKG $VER
-Paketformat $PKG_FORMT
+Otto-PKG @ $VER
+Paketformat: $PKG_FORMT
 Betriebssystem: $HOST_OS
 
-Copyright (c) 2019-2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
+Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
 
 lib-txtampel und lib-posixalt (@ ${LOUSR}/lib/otto)
 Copyright (c) 2019-2020 Jefferson Rocha et MazonOS Team.
-Copyright (c) 2019-2020 Luiz Antonio Rangel, Caio Novais et Project Pindorama.
+Copyright (c) 2019-2020 Dylan A. Raps et K1ss Linux/pure sh bible.
+Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
 "
 exit 0
 }
