@@ -3,8 +3,8 @@
 
 ## Shell alternatives to external processes
 ## pcat() by Jefferson Rocha <jeffersoncarneiro@slackjeff.com.br> @ bananapkg;
-## lines() added by Caio Novais <caionov08@gmail.com>, but originally it's came from dylanaraps' pure-sh-bible (and yeah, i didn't knew this);
-## basename() (and already cited lines()) by dylanaraps <https://github.com/dylanaraps> @ pure-sh-bible.
+## lines() added by Caio Novais <caionov08@gmail.com>, but originally it's came from Dylan Araps' pure-sh-bible (and yeah, i didn't knew this);
+## basename() (and already cited lines()) by Dylan Araps <https://github.com/dylanaraps> @ pure-sh-bible.
 ## Everything here was originally in MIT License, now sublicensed to Caldera/4-Clause BSD license (see LICENSE).
 
 # basename

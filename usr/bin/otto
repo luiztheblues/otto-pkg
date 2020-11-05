@@ -45,7 +45,7 @@ alias chdir='cd'
 
 ############# Program Specifications ######
 # Program Otto
-# Version 0.3
+# Version 0.4
 export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
@@ -268,7 +268,7 @@ ListPackages(){
 }
 
 Info(){ printf "\
-Otto-PKG @ $VER
+Otto-PKG @ 0.4
 Paketformat: $PKG_FORMT
 Betriebssystem: $HOST_OS
 
@@ -276,7 +276,7 @@ Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
 
 lib-txtampel und lib-posixalt (@ ${LOUSR}/lib/otto)
 Copyright (c) 2019-2020 Jefferson Rocha et MazonOS Team.
-Copyright (c) 2019-2020 Dylan A. Raps et K1ss Linux/pure sh bible.
+Copyright (c) 2019-2020 Dylan Araps et K1ss Linux/pure sh bible.
 Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
 "
 exit 0
