@@ -172,7 +172,7 @@ Uncompress(){
 }
 
 Build(){
-  # Scripts for building the package shall be minimal and pure POSIX, so that's why we call them using the POSIX shell and not Zsh, Ksh or Bash (this one isn't even included in the base-system)
+  # Scripts for building the package shall be minimal and pure POSIX
   /bin/sh "$SRCDIR"/uncompressed-"$PKG_FILENAME"/install/checkinstall
   /bin/sh "$SRCDIR"/uncompressed-"$PKG_FILENAME"/install/makebuild
 }
@@ -224,7 +224,7 @@ InstallPackage(){
     CheckDependencies
     CheckDisk
     Build
-    mkdir /var/otto/installed/pkg/OTTO"$PKG"-"$VERSION"
+    mkdir /var/otto/installed/pkg/OTTO"$PKG"
     GenerateLocalpkgmap
   # GenerateLocalpkginfo
     printf '%s\n' "$PKGNM-$VERSION" > /var/otto/installed/contents
