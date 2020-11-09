@@ -99,7 +99,7 @@ Checkroot(){
 }
 
 CheckNetwork(){
-  # POSIX regex that will remove 'https://' and anything after '.<tdl>'.
+  # POSIX regex that will remove 'https://' and anything after '.<tld>'.
   # $MIRROR is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
   local MIRROR=${MIRROR#*//}
   local MIRROR=${MIRROR%%/*} 
