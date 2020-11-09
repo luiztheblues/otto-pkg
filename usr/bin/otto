@@ -99,9 +99,14 @@ Checkroot(){
 }
 
 CheckNetwork(){
+  # POSIX regex that will remove 'https://' and anything after '.<tdl>'.
+  # $MIRROR is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
+  local MIRROR=${MIRROR#*//}
+  local MIRROR=${MIRROR%%/*} 
+  
   printf '%s' "Checking network connection"
   txtwait
-  if  `timeout 12 /usr/bin/netcat luiznet.tk 80 <<< "GET luiznet.tk HTTP/1.0\n\n" > /dev/null 2>&1`; then
+  if `timeout 12 /usr/bin/netcat $MIRROR 80 <<< "GET $MIRROR HTTP/1.0\n\n" > /dev/null 2>&1`; then
     printf '%s\n' "[ ${GREEN}O.K.$END ]"
   else
     printf '%s\n' "[ ${RED}FAILED$END ]"
