@@ -155,7 +155,7 @@ CheckRawPackage(){
     # For uncompress
     EXTR_CMD=`/usr/bin/7z x "$SRCDIR"/"$PKG_FILENAME""$PKG_FORMT" -o "SRCDIR"/uncompressed-"$PKG_FILENAME" -bb1` # For uncompressing downloaded packages, local pkginfo needs to be sourcered first.
     EXTR_MSG="Extracting $PKG_FILENAME$PKG_FORMT"
-  done
+  fi
 }
 
 CheckDependencies(){
@@ -164,7 +164,8 @@ CheckDependencies(){
       printf '%s\n' "$LIB is O.K."
     else
       printf '%s\n' "${RED}ERROR$END: $LIB isn't installed. Please, install the package that's corresponds to it."
-  done
+    fi
+   done
 }
 
 ##############  Sure i am, dad.  ############
@@ -291,16 +292,16 @@ Help(){
     export LANG=en_US.UTF-8
     export LC_ALL=${LANG}
     printf "\
-${GREEN}Otto, eine Paketverwaltungs-Toolchain.$END
+${BOLD}Otto, eine Paketverwaltungs-Toolchain.$END
 ${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkg>| (-d|-u|-b) -r <pkg>$PKG_FORMT$END
-${GREEN}> help (-H)    - Show this help message.
-> info (-I)    - List info about the software.
-> find (-f)    - Search for content in Otto'\''s files.
-> dig  (-d)    - Install package.
-> bury (-b)    - Remove package.
-> up2date (-u) - Update repository index and packages.
-> mkpkg (-i)   - Build a package (using source code or binaries).
-> list  (-l)   - List installed packages.$END
+${GREEN}> help$END (-H)    - Show this help message.
+${GREEN}> info$END (-I)    - List info about the software.
+${GREEN}> find$END (-f)    - Search for content in Otto's files.
+${GREEN}> dig$END  (-d)    - Install package.
+${GREEN}> bury$END (-b)    - Remove package.
+${GREEN}> up2date$END (-u) - Update repository index and packages.
+${GREEN}> mkpkg$END (-i)   - Build a package (using source code or binaries).
+${GREEN}> list$END  (-l)   - List installed packages.
 
 ✠ GOTT MIT UNS ✠
 "
