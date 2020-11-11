@@ -103,13 +103,13 @@ CheckNetwork(){
   # $MIRROR is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
   local MIRROR=${MIRROR#*//}
   local MIRROR=${MIRROR%%/*} 
-  
+ 
   printf '%s' "Checking network connection"
   txtwait
-  if `timeout 12 /usr/bin/netcat $MIRROR 80 <<< "GET $MIRROR HTTP/1.0\n\n" > /dev/null 2>&1`; then
-    printf '%s\n' "[ ${GREEN}O.K.$END ]"
+  if `printf "GET $MIRROR HTTP/1.0\n\n" | /usr/bin/netcat $MIRROR 80 > /dev/null 2>&1`; then
+    echo "[ ${GREEN}O.K.$END ]"
   else
-    printf '%s\n' "[ ${RED}FAILED$END ]"
+    echo "[ ${RED}FAILED$END ]"
     printf "${RED}ERROR$END: Apparently, this box isn't connected to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains everything necessary to install the program), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}otto dig [raw|-r]$END.\nIf you expected to have networking on this box, do some checks. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
     exit 1
   fi
