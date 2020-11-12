@@ -28,14 +28,14 @@
 # Make it portable;
 # Fix identation  (tab = two spaces);
 # Write the remove() and install() function (and finish others!);
-# Implement raw/-r option (and function!) for installing/removing/updating packages via an .psl file;
 # Fix the inconsistent code style;
 # Create a log function, for save every operation log in /var/otto/system/logs/otto_`date`. A little useless for now;
-# Test if multiple packages install won't broke everything. If it does, try to fix with a for loop.
+# Add long name options;
+# Rewrite Find() function.
 
 ############# Export C locale #############
-export LANG=C
-export LC_ALL=${LANG}
+export LANG='C'
+export LC_ALL="${LANG}"
 ##############     END       ##############
 
 ############# Export chdir alias ##########
@@ -45,11 +45,11 @@ alias chdir='cd'
 
 ############# Program Specifications ######
 # Program Otto
-# Version 0.4
+# Version 0.5
 export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
-export HOST_OS=${HKERNEL}
+export HOST_OS="${HKERNEL}"
 ##############     END       ##############
 
 ############## Include Files ##############
@@ -102,21 +102,20 @@ CheckNetwork(){
   # POSIX regex that will remove 'https://' and anything after '.<tld>'.
   # $MIRROR is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
   local MIRROR=${MIRROR#*//}
-  local MIRROR=${MIRROR%%/*} 
- 
+  local MIRROR=${MIRROR%%/*}
   printf '%s' "Checking network connection"
   txtwait
   if `printf "GET $MIRROR HTTP/1.0\n\n" | /usr/bin/netcat $MIRROR 80 > /dev/null 2>&1`; then
-    echo "[ ${GREEN}O.K.$END ]"
+    printf "[ ${GREEN}O.K.$END ]"
   else
-    echo "[ ${RED}FAILED$END ]"
+    printf "[ ${RED}FAILED$END ]"
     printf "${RED}ERROR$END: Apparently, this box isn't connected to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains everything necessary to install the program), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}otto dig [raw|-r]$END.\nIf you expected to have networking on this box, do some checks. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
     exit 1
   fi
 }
 
 CheckParameters(){
-  if [ -z "$2" ]; then
+  if [ -z "$OPTARG" ]; then
     printf '%s\n' "${RED}ERROR$END: Insufficient parameters."
     exit 127
   fi
@@ -140,7 +139,7 @@ Estimated space after install: `/usr/bin/bc <<< "scale=3; $DSKVERF - $PKGGROSSE_
 CheckRawPackage(){
   if [ "$RAW_PKG" = '1' ]; then 
     # For uncompress
-    PKGNM="$I" # I've called "I" because i couldn't think of a name, sorry.
+    I="${PKGNM}" # I've called it "I" because i couldn't think of a name, sorry.
     BASENAME=`basename $I`
     PKG_FILENAME=`/usr/bin/sed 's/.psl//' <<< $I`
     EXTR_CMD=`/usr/bin/7z x $I -o "$SRCDIR"/uncompressed-"$PKG_FILENAME"`
@@ -161,9 +160,9 @@ CheckRawPackage(){
 CheckDependencies(){
   for LIB in `printf '%s' "$DEPS"`; do
     if grep "$LIB" > /dev/null 2>&1 <<< `printf '%s\n' /lib/* /usr/lib/*`; then
-      printf '%s\n' "$LIB is O.K."
+      printf "$LIB is O.K."
     else
-      printf '%s\n' "${RED}ERROR$END: $LIB isn't installed. Please, install the package that's corresponds to it."
+      printf "${RED}ERROR$END: $LIB isn't installed. Please, install the package that's corresponds to it."
     fi
    done
 }
@@ -222,7 +221,7 @@ DownwloadPackage(){
 
 InstallPackage(){
   printf "Packages to install: ${#@}\n" 
-  for PKGNM in "$@"; do
+  for PKGNM in "${@}"; do
     CheckRawPackage
     Uncompress
     $SOURCE_PKGINFO # Source package extracted pkginfo (i know, it's messy but it works in theory)
@@ -240,7 +239,7 @@ InstallPackage(){
 }
 
 RemovePackage(){
-  for PKGNM in "$@"; do 
+  for PKGNM in "${@}"; do 
     PKG=`printf '%s' "$PKGNM" | /usr/bin/cut -d "/" -f 2`
     CATEGORY=`printf '%s' "$PKGNM" | /usr/bin/cut -d "/" -f 1`
     printf '%s' "Removing $CATEGORY/$PKG"
@@ -255,13 +254,13 @@ Update(){
   chdir "$PKGDIR"
   /usr/bin/curl -O -OD "$MIRROR"/pkgindex"$INDEXFILE"
   /usr/bin/7z x pkgindex"$INDEXFILE"
-  printf '%s\n' "Package index updated."
+  printf '%s' "Package index updated."
   exit 0
 }
 
-MakePackage(){
+#MakePackage(){
   
-}
+#}
 
 ListPackages(){
   if [ -f "/var/otto/installed/contents" ]; then
@@ -274,13 +273,13 @@ ListPackages(){
 }
 
 Info(){ printf "\
-Otto-PKG @ 0.4
+Otto-PKG @ 0.5
 Paketformat: $PKG_FORMT
 Betriebssystem: $HOST_OS
 
 Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
 
-lib-txtampel und lib-posixalt (@ ${LOUSR}/lib/otto)
+lib-txtampel und lib-posixalt (@ /usr/lib/otto)
 Copyright (c) 2019-2020 Jefferson Rocha et MazonOS Team.
 Copyright (c) 2019-2020 Dylan Araps et K1ss Linux/pure sh bible.
 Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
@@ -312,23 +311,22 @@ find(){
   grep "$1" "`which otto`" "/etc/make.cfg"
   exit 0
 }
-
 ##############     END      #################
 
-############## CASE DO SCRIPT #################
-case $1 in
-  help|-H*) Help ;;
-  info|-I*) Info ;;
-  find|-f*) find "$@" ;;
-  dig|-d*) Checkroot && InstallPackage "$@" ;;
-  bury|-b*) CheckParameters "$@" && Checkroot && RemovePackage "$@" ;;
-  up2date|-u*) Checkroot && Update "$@" ;;
-  mkpkg|-i*) Checkroot && MakePackage "$2" ;;
-  list|-l*) ListPackages "$@" ;;
-  chknet*) CheckNetwork;;
-  *) Help ;;
-esac
-case $2 in
-  -r*) export RAW_PKG=1 ;;
-esac
-############## FIM DO CASE ####################
+############## CASE AND GETOPT #################
+OPTPARAMS="NHIlfd:b:u:m:" 
+while getopts "${OPTPARAMS}" OPT; do
+  case "$OPT" in
+    "H") Help ;;
+    "I") Info ;;
+    "f") find ;;
+    "r") export RAW_PKG=1 ;;
+    "d") Checkroot && InstallPackage "$OPTARG" ;;
+    "b") CheckParameters "$OPTARG" && Checkroot && RemovePackage "$@" ;;
+    "u") Checkroot && Update "$OPTARG" ;;
+    "m") Checkroot && MakePackage "$OPTARG" ;;
+    "l") ListPackages ;;
+    "?") Help ;;
+  esac
+done
+############## CASE AND GETOPT #################
