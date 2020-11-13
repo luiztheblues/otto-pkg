@@ -1,4 +1,4 @@
-#!/bin/sh
+# colors.shi: Colors libary for POSIX Shell Script.
 
 export RED='\033[31;1m'
 export YELLOW='\033[33;1m'
