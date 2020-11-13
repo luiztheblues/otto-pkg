@@ -1,12 +1,10 @@
-#!/bin/jsh
-# I think that jsh (OpenSolaris' POSIX Shell, now ported to Linux via Heirloom Project) can handle this.
-
-## Shell alternatives to external processes
-## pcat() by Jefferson Rocha <jeffersoncarneiro@slackjeff.com.br> @ bananapkg;
-## lines() added by Caio Novais <caionov08@gmail.com>, but originally it's came from Dylan Araps' pure-sh-bible (and yeah, i didn't knew this);
-## basename() (and already cited lines()) by Dylan Araps <https://github.com/dylanaraps> @ pure-sh-bible.
-## ptimeout() by Luiz Antônio Rangel <luiz.antonio.rangel@bol.com.br> @ otto-pkg.
-## Everything here (except what was added @ otto-pkg) was originally in MIT License, now sublicensed to Caldera/4-Clause BSD license (see LICENSE).
+# posix-alt.shi: POSIX shell alternatives for external processes, in a single libary.
+# Copyright:
+# pcat() by Jefferson Rocha <jeffersoncarneiro@slackjeff.com.br> @ bananapkg;
+# lines() added by Caio Novais <caionov08@gmail.com>, but originally it's came from Dylan Araps' pure-sh-bible (and yeah, i didn't knew this);
+# basename() (and already cited lines()) by Dylan Araps <https://github.com/dylanaraps> @ pure-sh-bible.
+# ptimeout() by Luiz Antônio Rangel <luiz.antonio.rangel@bol.com.br> @ otto-pkg.
+# Everything here (except what was added @ otto-pkg) was originally in MIT License, now sublicensed to Caldera/4-Clause BSD license (see LICENSE).
 
 # basename
 basename() {
@@ -26,17 +24,18 @@ lines() {
 }
 
 # cat
+# In fact, this isn't really POSIX-friendly.
 pcat(){
   local EOF='EOF'
   INPUT=("${@:-"%"}")
   for I in "${INPUT[@]}"; do
-    if [[ "$I" != "%" ]]; then
+    if [ "$I" != "%" ]; then
       exec 3< "$I" || exit 1
       else
       exec 3<&0
     fi
     while read -ru 3; do
-      [[ "$REPLY" = "$EOF" ]] && break
+      [ "$REPLY" = "$EOF" ] && break
       printf '%s\n' "$REPLY"
     done
   done
