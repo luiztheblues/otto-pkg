@@ -27,11 +27,11 @@
 # Optimize it;
 # Make it portable;
 # Fix identation  (tab = two spaces);
-# Write the remove() and install() function (and finish others!);
 # Fix the inconsistent code style;
 # Create a log function, for save every operation log in /var/otto/system/logs/otto_`date`. A little useless for now;
 # Add long name options;
-# Rewrite find() function.
+# Rewrite find() function;
+# Change variable names from "snake case" to "Pascal case" (or a more styled "snake case", with full names and not crappy abbreviations (like Sun Microsystems' code)).
 
 ############# Export C locale #############
 export LANG='C'
@@ -322,7 +322,7 @@ while getopts "${OPTPARAMS}" OPT; do
     "f") find ;;
     "r") export RAW_PKG=1 ;;
     "d") Checkroot && InstallPackage "$OPTARG" ;;
-    "b") CheckParameters "$OPTARG" && Checkroot && RemovePackage "$@" ;;
+    "b") CheckParameters "$OPTARG" && Checkroot && RemovePackage "$OPTARG" ;;
     "u") Checkroot && Update "$OPTARG" ;;
     "m") Checkroot && MakePackage "$OPTARG" ;;
     "l") ListPackages ;;
