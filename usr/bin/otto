@@ -31,7 +31,7 @@
 # Fix the inconsistent code style;
 # Create a log function, for save every operation log in /var/otto/system/logs/otto_`date`. A little useless for now;
 # Add long name options;
-# Rewrite Find() function.
+# Rewrite find() function.
 
 ############# Export C locale #############
 export LANG='C'
@@ -314,7 +314,7 @@ find(){
 ##############     END      #################
 
 ############## CASE AND GETOPT #################
-OPTPARAMS="NHIlfd:b:u:m:" 
+OPTPARAMS="NHIlfrd:b:u:m:" 
 while getopts "${OPTPARAMS}" OPT; do
   case "$OPT" in
     "H") Help ;;
