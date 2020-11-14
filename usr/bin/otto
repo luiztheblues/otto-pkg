@@ -66,8 +66,7 @@ export CATEGORY="`/usr/bin/cut -d "/" -f 1 <<< "$PKGNM"`"
 # Package filename
 export PKG_FILENAME="`/usr/bin/sed 's/ /./g' <<< $NAME`"
 # POSIX regex that will remove 'https://' and anything after '.<tld>'.
-export mirror_basename=${MIRROR#*//}
-export mirror_basename=${mirror_basename%%/*}
+export mirror_basename=${${MIRROR#*//}%%/*}
 ##############     END       ##############
 
 # Load the configuration file:
@@ -109,9 +108,9 @@ CheckNetwork(){
   printf '%s' 'Checking network connection'
   txtwait
   if `printf "GET ${mirror_basename} HTTP/1.0\n\n" | /usr/bin/netcat "${mirror_basename}" 80 > /dev/null 2>&1`; then
-    printf "[ ${GREEN}O.K.$END ]"
+    printf "[ ${GREEN}O.K.$END ]\n"
   else
-    printf "[ ${RED}FAILED$END ]"
+    printf "[ ${RED}FAILED$END ]\n"
     printf "${RED}ERROR$END: Apparently, this box isn't connected to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains everything necessary to install the program), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}otto dig [raw|-r]$END.\nIf you expected to have networking on this box, do some checks. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
     exit 11
   fi
@@ -340,6 +339,7 @@ while getopts "${OPTPARAMS}" OPT; do
     "u") Checkroot && Update "$OPTARG" ;;
     "m") Checkroot && MakePackage "$OPTARG" ;;
     "l") ListPackages ;;
+    "N") CheckNetwork ;;
     "?") Help ;;
   esac
 done
