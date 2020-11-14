@@ -7,7 +7,7 @@
 
 # Caldera License (a.k.a 4-Clause BSD).
 # Copyright (c) 2019-2020, Luiz Antônio Rangel et Projeto Pindorama;
-# Read LICENSE @ master branch root (GitHub) for the complete license.
+# Read LICENSE.txt @ master branch root (GitHub) for the complete license.
 
 #############    Depends    ###############
 # Korn Shell (93,PD);
@@ -23,15 +23,15 @@
 ##############     END       ##############
 
 # TO DO:
-# Terminar as funções pelo menos;
 # Optimize it;
 # Make it portable;
-# Fix identation  (tab = two spaces);
 # Fix the inconsistent code style;
+# Change variable names from "snake case" to "Pascal case" (or a more styled "snake case", with full names and not crappy abbreviations (like Sun Microsystems' code)).
 # Create a log function, for save every operation log in /var/otto/system/logs/otto_`date`. A little useless for now;
 # Add long name options;
-# Rewrite find() function;
-# Change variable names from "snake case" to "Pascal case" (or a more styled "snake case", with full names and not crappy abbreviations (like Sun Microsystems' code)).
+# Rewrite find() and CheckDependencies() function;
+# Check if everything works properly;
+# May implement IPFS.
 
 ############# Export C locale #############
 export LANG='C'
@@ -60,15 +60,20 @@ export HOST_OS="`uname -s`"
 ##############     END       ##############
 
 ############## Global Variables/Subshells #
-PKG_FILENAME=`/usr/bin/sed 's/ /./g' <<< $NAME`
-
+# Package and category name pipeline
+export PKG="`/usr/bin/cut -d "/" -f 2 <<< "$PKGNM"`"
+export CATEGORY="`/usr/bin/cut -d "/" -f 1 <<< "$PKGNM"`"
+# Package filename
+export PKG_FILENAME="`/usr/bin/sed 's/ /./g' <<< $NAME`"
+# POSIX regex that will remove 'https://' and anything after '.<tld>'.
+export mirror_basename="${${MIRROR#*//}%%/*}"
 ##############     END       ##############
 
 # Load the configuration file:
   if [ -f "/etc/make.cfg" ]; then
     . "/etc/make.cfg"
   else
-    printf '%s\n' "${RED}ERROR$END: make.cfg not found!\nCopy this file from the installation media (or download it from the offcial repo) and configure it."
+    printf "${RED}ERROR$END: make.cfg not found!\nCopy this file from the installation media (or download it from the offcial repo) and configure it."
     exit 1
   fi
 
@@ -80,32 +85,29 @@ Checkroot(){
     printf "${YELLOW}WARNING$END: It looks like you are not logged into toor nor root user...\nWould you like to install the program on the highest userland layer ($HIUSR) instead of installing directly on the root of the system?\n${YELLOW}WARNING$END: Some packages ${BOLD}cannot$END be installed on the highest userland layer under any circunstances.\nRegarding the first (and only) question: [Y,N]? "
     read -r ANTWORTEN
     if /usr/bin/grep -iq '^y' <<< "$ANTWORTEN"; then
-      export USRDIR=${HIUSR}
-      export USRBIN=${HIUSRBIN}
-      export ETC=${HIETC}
-      export SRCDIR=${HISRCDIR}
+      export USRDIR="${HIUSR}"
+      export USRBIN="${HIUSRBIN}"
+      export ETC="${HIETC}"
+      export SRCDIR="${HISRCDIR}"
       export DIRISTATE=2
     else
-      printf '%s\n' "Alright so, exiting..."
+      printf '%s\n' 'Alright so, exiting...'
       exit 130
     fi
   else
-    export USRDIR=${LOUSR}
-    export USRBIN=${LOUSRBIN}
-    export ETC=${LOETC}
-    export SRCDIR=${LOSRCDIR}
+    export USRDIR="${LOUSR}"
+    export USRBIN="${LOUSRBIN}"
+    export ETC="${LOETC}"
+    export SRCDIR="${LOSRCDIR}"
     export DIRISTATE=1
   fi
 }
 
 CheckNetwork(){
-  # POSIX regex that will remove 'https://' and anything after '.<tld>'.
   # $MIRROR is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
-  local MIRROR=${MIRROR#*//}
-  local MIRROR=${MIRROR%%/*}
-  printf '%s' "Checking network connection"
+  printf '%s' 'Checking network connection'
   txtwait
-  if `printf "GET $MIRROR HTTP/1.0\n\n" | /usr/bin/netcat $MIRROR 80 > /dev/null 2>&1`; then
+  if `printf "GET ${mirror_basename} HTTP/1.0\n\n" | /usr/bin/netcat ${mirror_basename} 80 > /dev/null 2>&1`; then
     printf "[ ${GREEN}O.K.$END ]"
   else
     printf "[ ${RED}FAILED$END ]"
@@ -165,7 +167,7 @@ CheckDependencies(){
       printf "${RED}ERROR$END: $LIB isn't installed. Please, install the package that's corresponds to it."
       exit 11
     fi
-   done
+  done
 }
 
 ##############  Sure i am, dad.  ############
@@ -189,11 +191,11 @@ cat > /var/otto/installed/pkg/OTTO"$PKG"/pkgmap <<EOD
 EOD
 } # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
 
-#GenerateLocalpkginfo(){
-#cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo <<EOD
-#`cat "$SRCDIR"/uncompressed-"$PKG_FILENAME"/pkginfo`
-#EOD
-#}
+GenerateLocalpkginfo(){
+cat > /var/otto/installed/pkg/OTTO"$PKG"/pkginfo <<EOD
+`cat "$SRCDIR"/uncompressed-"$PKG_FILENAME"/pkginfo`
+EOD
+}
 
 AutoClean(){
   if [ "$AUTOCLEAN" = 'YES' ]; then
@@ -206,15 +208,11 @@ AutoClean(){
 DownwloadPackage(){
   if [ "$SYNC_TYPE" = 'bittorrent' ]; then
     TORRENT="$PKGNM"
-    PKG=`/usr/bin/cut -d '/' -f 2 <<< "$TORRENT"`
-    CATEGORY=`/usr/bin/cut -d '/' -f 1 <<< "$TORRENT"`
     . "$PKGDIR"/"$TORRENT"/pkginfo # Source local pkginfo
     /usr/bin/pico-torrent -s -f "$PKGDIR"/"$TORRENT"/pkgp2p -d "$SRCDIR"
   elif [ "$SYNC_TYPE" = 'http' ] || [ "$SYNC_TYPE" = 'ftp' ]; then
-    PKG=`/usr/bin/cut -d '/' -f 2 <<< "$PKGNM"`
-    CATEGORY=`/usr/bin/cut -d '/' -f 1 <<< "$PKGNM"`
     . "$PKGDIR"/"$PKGNM"/pkginfo # Source local pkginfo
-    chdir $SRCDIR && { /usr/bin/curl -O -# "`cat "$PKGDIR/$PKG/pkglink"`" ; cd -;}
+    chdir $SRCDIR && { /usr/bin/curl -O -# "`cat "$PKGDIR/$PKG/pkglink"`" ; chdir -;}
   else
     printf "${RED}ERROR$END: ${YELLOW}SYNC_TYPE$END not set @ /etc/make.cfg.\nAre you trying to install a local package? Use ${YELLOW}-r$END with ${YELLOW}-d$END"
     exit 1
@@ -242,27 +240,38 @@ InstallPackage(){
 
 RemovePackage(){
   for PKGNM in "${@}"; do 
-    PKG=`/usr/bin/cut -d "/" -f 2 <<< "$PKGNM"`
-    CATEGORY=`/usr/bin/cut -d "/" -f 1 <<< "$PKGNM"`
     printf '%s' "Removing $CATEGORY/$PKG"
     txtwait &
     < /var/otto/installed/pkg/OTTO"$PKG"/pkgmap /usr/bin/xargs rm -rfv  # Wait, do this work? Really awesome to see that i didn't need that cat.
+    /usr/bin/rm -rfv /var/otto/installed/pkg/OTTO"$PKG"
     /usr/bin/sed -i "/$PKGNM/d" /var/otto/installed/contents
   done
   exit 0
 }
 
 Update(){
-  printf '%s' 'Function not complete yet, exiting.'
-  exit 1
-  INST_PKGS="`cat /var/otto/installed/contents`"
-  INST_PKGS_VER="`$INST_PKGS | sed 's/[^0-9]*//g'`"
+  local index_package_source="`. "$PKGDIR"/"$PKGNM"/pkginfo`"
+  local index_package_version="`/usr/bin/tr -d '.' <<< "$VERSION"`"
+  local installed_package_version="`/usr/bin/grep -oP "$PKGNM"'-[0-9]+\.[0-9]+' /var/otto/installed/contents | /usr/bin/tr -d '.' | /usr/bin/tr -dc '0-9'`"
+  printf "Refreshing packages catalog ($mirror_basename) "
+  {chdir "$SRCDIR" && { /usr/bin/curl -O -# "$MIRROR"/lastest"$INDEXFILE" ; chdir -;}}
   chdir "$PKGDIR"
-  # Download the lastest release
-  /usr/bin/curl -O -OD "$MIRROR"/pkgindex"$INDEXFILE"
-  /usr/bin/7z x pkgindex"$INDEXFILE"
+  /usr/bin/7z x $SRCDIR/lastest"$INDEXFILE"
   printf '%s\n' 'Package index updated.'
-  printf '%s' 'Checking packages for update.'
+  for PKGNM in "$OPTARGS"; do
+    printf '%s\n' 'Checking updates for $PKGNM.'
+    if [ "$index_package_version" > "$installed_package_version" ]; then
+      printf "Updating $PKGNM"
+      txtwait
+      /usr/bin/sed -i "/$PKGNM-$installed_package_version/d" /var/otto/installed/contents
+      /usr/bin/rm -rf /var/otto/installed/pkg/OTTO"$PKG"
+      InstallPackage "$PKGNM" &>> /dev/null
+      printf "Updated $PKGNM succesfully.\n"
+    else
+      printf "$PKGNM is up to date."
+    fi
+  done
+  exit 0
 }
 
 #MakePackage(){
