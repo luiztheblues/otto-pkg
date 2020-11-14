@@ -256,7 +256,7 @@ Update(){
   printf '%s' 'Function not complete yet, exiting.'
   exit 1
   INST_PKGS="`cat /var/otto/installed/contents`"
-  INST_PKGS_VER="`$INST_PKGS | sed 's/[^0-9]*//g'`
+  INST_PKGS_VER="`$INST_PKGS | sed 's/[^0-9]*//g'`"
   chdir "$PKGDIR"
   # Download the lastest release
   /usr/bin/curl -O -OD "$MIRROR"/pkgindex"$INDEXFILE"
