@@ -44,8 +44,8 @@ alias chdir='cd'
 ##############     END       ##############
 
 ############# Program Specifications ######
-# Program Otto
-# Version 0.5
+# Program Name: Otto
+export ausgabe='0.6'
 export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
@@ -66,7 +66,8 @@ export CATEGORY="`/usr/bin/cut -d "/" -f 1 <<< "$PKGNM"`"
 # Package filename
 export PKG_FILENAME="`/usr/bin/sed 's/ /./g' <<< $NAME`"
 # POSIX regex that will remove 'https://' and anything after '.<tld>'.
-export mirror_basename="${${MIRROR#*//}%%/*}"
+export mirror_basename=${MIRROR#*//}
+export mirror_basename=${mirror_basename%%/*}
 ##############     END       ##############
 
 # Load the configuration file:
@@ -107,7 +108,7 @@ CheckNetwork(){
   # $MIRROR is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
   printf '%s' 'Checking network connection'
   txtwait
-  if `printf "GET ${mirror_basename} HTTP/1.0\n\n" | /usr/bin/netcat ${mirror_basename} 80 > /dev/null 2>&1`; then
+  if `printf "GET ${mirror_basename} HTTP/1.0\n\n" | /usr/bin/netcat "${mirror_basename}" 80 > /dev/null 2>&1`; then
     printf "[ ${GREEN}O.K.$END ]"
   else
     printf "[ ${RED}FAILED$END ]"
@@ -283,29 +284,32 @@ ListPackages(){
     lines "/var/otto/installed/contents"
     exit 0
   else
-    printf "${BLK_RED}ERROR:$BLK_END package list not found! This isn't a good thing...\a\n"
+    printf "${RED}ERROR:$END package list not found! This isn't a good thing...\a\n"
     exit 140
   fi
 }
 
-Info(){ printf "\
-Otto-PKG @ 0.5
-Paketformat: $PKG_FORMT
-Betriebssystem: $HOST_OS
+Info(){ 
+  printf "\
+${BOLD}Otto, eine Paketverwaltungs-Toolchain.$END
+Ausgabe: ${ausgabe}
+Paketformat: ${PKG_FORMT}
+Betriebssystem: ${HOST_OS}
 
 Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
-See CONTRIBUTORS file for more.
+See CONTRIBUTORS.txt file for more.
+
+✠ GOTT MIT UNS ✠
 "
-exit 0
+  exit 0
 }
 
 Help(){
-    export LANG=en_US.UTF-8
-    export LC_ALL=${LANG}
+    local LANG='en_US.UTF-8'
+    local LC_ALL="${LANG}"
     printf "\
 [USAGE]: otto -<flags> <category>/<package>|<package filename>$PKG_FORMT 
 
-${BOLD}Otto, eine Paketverwaltungs-Toolchain.$END
 ${GREEN}> help$END (-H)    - Show this help message.
 ${GREEN}> info$END (-I)    - List info about the software.
 ${GREEN}> find$END (-f)    - Search for content in Otto's files.
@@ -314,10 +318,8 @@ ${GREEN}> bury$END (-b)    - Remove package.
 ${GREEN}> up2date$END (-u) - Update repository index and packages.
 ${GREEN}> mkpkg$END (-m)   - Build a package (using source code or binaries).
 ${GREEN}> list$END  (-l)   - List installed packages.
-
-✠ GOTT MIT UNS ✠
 "
-exit 0
+  exit 0
 }
 
 #find(){
