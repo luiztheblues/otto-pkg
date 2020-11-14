@@ -49,7 +49,7 @@ alias chdir='cd'
 export PKG_FORMT='.psl'
 export INDEXFILE='.otidx'
 export PKG_COMPSS='7z'
-export HOST_OS="${HKERNEL}"
+export HOST_OS="`uname -s`"
 ##############     END       ##############
 
 ############## Include Files ##############
@@ -110,14 +110,14 @@ CheckNetwork(){
   else
     printf "[ ${RED}FAILED$END ]"
     printf "${RED}ERROR$END: Apparently, this box isn't connected to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains everything necessary to install the program), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}otto dig [raw|-r]$END.\nIf you expected to have networking on this box, do some checks. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
-    exit 1
+    exit 11
   fi
 }
 
 CheckParameters(){
   if [ -z "$OPTARG" ]; then
     printf '%s\n' "${RED}ERROR$END: Insufficient parameters."
-    exit 127
+    exit 1
   fi
 }
 
@@ -163,6 +163,7 @@ CheckDependencies(){
       printf "$LIB is O.K."
     else
       printf "${RED}ERROR$END: $LIB isn't installed. Please, install the package that's corresponds to it."
+      exit 11
     fi
    done
 }
@@ -198,7 +199,7 @@ AutoClean(){
   if [ "$AUTOCLEAN" = 'YES' ]; then
     printf '%s\n' "Cleaning "$CATEGORY"/"$PKG" sources." ; rm -rvf "$SRCDIR"/"uncompressed-*" && rm -vf "$SRCDIR"/*"$PKG_FORMT"
   else
-    printf '%s\n' "${YELLOW}WARNING$END: Autocleaning is disabled, trash (build files and ${YELLOW}$PKG_FORMT$END's) will stay in the system (in the $SRCDIR) until some user with the needed permissions deletes them."
+    printf '%s\n' "${YELLOW}WARNING$END: Autocleaning is disabled, trash will stay in the system until someone with the needed permissions deletes them."
   fi
 }
 
@@ -215,7 +216,8 @@ DownwloadPackage(){
     . "$PKGDIR"/"$PKGNM"/pkginfo # Source local pkginfo
     chdir $SRCDIR && { /usr/bin/curl -O -# "`cat "$PKGDIR/$PKG/pkglink"`" ; cd -;}
   else
-    printf "${RED}ERROR$END: ${YELLOW}SYNC_TYPE$END not set @ /etc/make.cfg.\nAre you trying to install a local package? Use ${YELLOW}-r$END after ${YELLOW}-d$END"
+    printf "${RED}ERROR$END: ${YELLOW}SYNC_TYPE$END not set @ /etc/make.cfg.\nAre you trying to install a local package? Use ${YELLOW}-r$END with ${YELLOW}-d$END"
+    exit 1
  fi
 }
 
@@ -231,7 +233,7 @@ InstallPackage(){
     Build
     mkdir /var/otto/installed/pkg/OTTO"$PKG"
     GenerateLocalpkgmap
-  # GenerateLocalpkginfo
+    GenerateLocalpkginfo
     printf '%s\n' "$PKGNM-$VERSION" > /var/otto/installed/contents
   done
   AutoClean
@@ -240,22 +242,27 @@ InstallPackage(){
 
 RemovePackage(){
   for PKGNM in "${@}"; do 
-    PKG=`printf '%s' "$PKGNM" | /usr/bin/cut -d "/" -f 2`
-    CATEGORY=`printf '%s' "$PKGNM" | /usr/bin/cut -d "/" -f 1`
+    PKG=`/usr/bin/cut -d "/" -f 2 <<< "$PKGNM"`
+    CATEGORY=`/usr/bin/cut -d "/" -f 1 <<< "$PKGNM"`
     printf '%s' "Removing $CATEGORY/$PKG"
     txtwait &
-    < /var/otto/installed/pkg/OTTO"$PKG"/pkgmap /usr/bin/xargs rm -r  # Wait, do this work? Really awesome to see that i didn't need that cat.
+    < /var/otto/installed/pkg/OTTO"$PKG"/pkgmap /usr/bin/xargs rm -rfv  # Wait, do this work? Really awesome to see that i didn't need that cat.
     /usr/bin/sed -i "/$PKGNM/d" /var/otto/installed/contents
   done
   exit 0
 }
 
 Update(){
+  printf '%s' 'Function not complete yet, exiting.'
+  exit 1
+  INST_PKGS="`cat /var/otto/installed/contents`"
+  INST_PKGS_VER="`$INST_PKGS | sed 's/[^0-9]*//g'`
   chdir "$PKGDIR"
+  # Download the lastest release
   /usr/bin/curl -O -OD "$MIRROR"/pkgindex"$INDEXFILE"
   /usr/bin/7z x pkgindex"$INDEXFILE"
-  printf '%s' "Package index updated."
-  exit 0
+  printf '%s\n' 'Package index updated.'
+  printf '%s' 'Checking packages for update.'
 }
 
 #MakePackage(){
@@ -278,11 +285,7 @@ Paketformat: $PKG_FORMT
 Betriebssystem: $HOST_OS
 
 Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
-
-lib-txtampel und lib-posixalt (@ /usr/lib/otto)
-Copyright (c) 2019-2020 Jefferson Rocha et MazonOS Team.
-Copyright (c) 2019-2020 Dylan Araps et K1ss Linux/pure sh bible.
-Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
+See CONTRIBUTORS file for more.
 "
 exit 0
 }
@@ -291,15 +294,16 @@ Help(){
     export LANG=en_US.UTF-8
     export LC_ALL=${LANG}
     printf "\
+[USAGE]: otto -<flags> <category>/<package>|<package filename>$PKG_FORMT 
+
 ${BOLD}Otto, eine Paketverwaltungs-Toolchain.$END
-${YELLOW}otto {-H|-I|-f|-d|-b|-u|-i|-l} <category>/<pkg>| (-d|-u|-b) -r <pkg>$PKG_FORMT$END
 ${GREEN}> help$END (-H)    - Show this help message.
 ${GREEN}> info$END (-I)    - List info about the software.
 ${GREEN}> find$END (-f)    - Search for content in Otto's files.
 ${GREEN}> dig$END  (-d)    - Install package.
 ${GREEN}> bury$END (-b)    - Remove package.
 ${GREEN}> up2date$END (-u) - Update repository index and packages.
-${GREEN}> mkpkg$END (-i)   - Build a package (using source code or binaries).
+${GREEN}> mkpkg$END (-m)   - Build a package (using source code or binaries).
 ${GREEN}> list$END  (-l)   - List installed packages.
 
 ✠ GOTT MIT UNS ✠
@@ -307,10 +311,9 @@ ${GREEN}> list$END  (-l)   - List installed packages.
 exit 0
 }
 
-find(){
-  grep "$1" "`which otto`" "/etc/make.cfg"
-  exit 0
-}
+#find(){
+
+#}
 ##############     END      #################
 
 ############## CASE AND GETOPT #################
