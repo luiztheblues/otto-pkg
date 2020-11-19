@@ -6,7 +6,7 @@
 # Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent (und nun HTTP) herunterlädt.
 
 # Caldera License (a.k.a 4-Clause BSD).
-# Copyright (c) 2019-2020, Luiz Antônio Rangel et Projeto Pindorama;
+# Copyright (c) MMXX, Luiz Antônio Rangel et Projeto Pindorama;
 # Read LICENSE.txt @ master branch root (GitHub) for the complete license.
 
 #############    Depends    ###############
@@ -258,17 +258,17 @@ Update(){
   chdir "$PKGDIR"
   /usr/bin/7z x $SRCDIR/lastest"$INDEXFILE"
   printf '%s\n' 'Package index updated.'
-  for PKGNM in "$OPTARGS"; do
-    printf '%s\n' 'Checking updates for $PKGNM.'
+  for PKGNM in "${@}"; do
+    printf '%s' "Checking updates for $PKGNM."
     if [ "$index_package_version" > "$installed_package_version" ]; then
-      printf "Updating $PKGNM"
+      printf '%s\n' "Updating $PKGNM"
       txtwait
       /usr/bin/sed -i "/$PKGNM-$installed_package_version/d" /var/otto/installed/contents
       /usr/bin/rm -rf /var/otto/installed/pkg/OTTO"$PKG"
       InstallPackage "$PKGNM" &>> /dev/null
-      printf "Updated $PKGNM succesfully.\n"
+      printf '%s\n' "Updated $PKGNM succesfully."
     else
-      printf "$PKGNM is up to date."
+      printf '%s\n' "$PKGNM is up to date."
     fi
   done
   exit 0
@@ -295,7 +295,7 @@ Ausgabe: ${ausgabe}
 Paketformat: ${PKG_FORMT}
 Betriebssystem: ${HOST_OS}
 
-Copyright (c) 2019-2020 Luiz Antonio Rangel et Project Pindorama.
+Copyright (c) MMXX Luiz Antonio Rangel et Project Pindorama.
 See CONTRIBUTORS.txt file for more.
 
 ✠ GOTT MIT UNS ✠
@@ -307,7 +307,8 @@ Help(){
     local LANG='en_US.UTF-8'
     local LC_ALL="${LANG}"
     printf "\
-[USAGE]: otto -<flags> <category>/<package>|<package filename>$PKG_FORMT 
+[USAGE]: otto -<flags> <category>/<package>|<package filename>$PKG_FORMT
+         otto -m <folder where the package will be built>
 
 ${GREEN}> help$END (-H)    - Show this help message.
 ${GREEN}> info$END (-I)    - List info about the software.
@@ -327,11 +328,11 @@ ${GREEN}> list$END  (-l)   - List installed packages.
 ##############     END      #################
 
 ############## CASE AND GETOPT #################
-OPTPARAMS="NHIlfrd:b:u:m:" 
+OPTPARAMS="NHIlfvrd:b:u:m:" 
 while getopts "${OPTPARAMS}" OPT; do
   case "$OPT" in
     "H") Help ;;
-    "I") Info ;;
+    "I"|"v") Info ;;
     "f") find ;;
     "r") export RAW_PKG=1 ;;
     "d") Checkroot && InstallPackage "$OPTARG" ;;

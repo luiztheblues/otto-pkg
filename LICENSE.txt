@@ -1,7 +1,7 @@
 Caldera License
 (Original from: https://projeto-pindorama.neocities.org/_arquivos/licencas/copycenter/CALDERA_LICENSE.html)
 
-Copyright(C) Luiz Antônio Rangel, 2019 - 2020. All rights reserved.
+Copyright(C) Luiz Antônio Rangel, MMXX. All rights reserved.
 Read the CONTRIBUTORS file for more information about another copyright holders.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
