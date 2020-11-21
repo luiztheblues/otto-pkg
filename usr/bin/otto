@@ -126,16 +126,16 @@ CheckParameters(){
 CheckDisk(){
   BENUTZT=`/usr/bin/df -m / | /usr/bin/tail -1 | /usr/bin/grep '[0-9]' | /usr/bin/awk '{print $3}'`
   DSKVERF=`/usr/bin/df -m / | /usr/bin/tail -1 | /usr/bin/grep '[0-9]' | /usr/bin/awk '{print $4}'`
-  DSKGROSSE=$[$BENUTZT + $DSKVERF]
+  DSKGROSSE=$[${BENUTZT} + ${DSKVERF}]
   PKGGROSSE_FILE=`/usr/bin/du -sk "$SRCDIR"/uncompressed-"$PKG_FILENAME"/src.tar | /usr/bin/awk '{print $1}'`
   PKGGROSSE_CALC=`/usr/bin/bc <<< "scale=3; $PKGGROSSE_FILE/1000"`
   printf "\
-Estimated total disk space: "$DSKGROSSE"MB
-Estimated used space: "$DSKVERF"MB
-Estimated space available: "$BENUTZT"MB
-Estimated space to be consumed (build files): "$PKGGROSSE_CALC"MB
-Estimated space after install: `/usr/bin/bc <<< "scale=3; $DSKVERF - $PKGGROSSE_CALC"`MB
-"  
+Estimated total disk space: ${DSKGROSSE}MB
+Estimated used space: ${DSKVERF}MB
+Estimated space available: ${BENUTZT}MB
+Estimated space to be consumed (build files): ${PKGGROSSE_CALC}MB
+Estimated space after install: `/usr/bin/bc <<< "scale=3; ${DSKVERF} - ${PKGGROSSE_CALC}"`MB
+"
 }
 
 CheckRawPackage(){
@@ -145,7 +145,7 @@ CheckRawPackage(){
     BASENAME=`basename $I`
     PKG_FILENAME=`/usr/bin/sed 's/.psl//' <<< $I`
     EXTR_CMD=`/usr/bin/7z x $I -o "$SRCDIR"/uncompressed-"$PKG_FILENAME"`
-    EXTR_MSG="Extracting $BASENAME"
+    EXTR_MSG="Extracting ${BASENAME}"
     # Source pkginfo
     SOURCE_PKGINFO=`. "$SRCDIR"/uncompressed-"$PKG_FILENAME"/pkginfo`
   else 
@@ -261,7 +261,7 @@ Update(){
   for PKGNM in "${@}"; do
     printf '%s' "Checking updates for $PKGNM."
     if [ "$index_package_version" > "$installed_package_version" ]; then
-      printf '%s\n' "Updating $PKGNM"
+      printf '%s' "Updating $PKGNM"
       txtwait
       /usr/bin/sed -i "/$PKGNM-$installed_package_version/d" /var/otto/installed/contents
       /usr/bin/rm -rf /var/otto/installed/pkg/OTTO"$PKG"
@@ -274,9 +274,14 @@ Update(){
   exit 0
 }
 
-#MakePackage(){
-  
-#}
+MakePackage(){
+  # This first implementation will be only for pure source code.
+  # I need to make it more "binary-packaging-friendly".
+  printf '%s\n' "Creating package skeleton for $1."
+  mkdir -vp ${HOME}/packaging/$1
+  mkdir -vp ${HOME}/packaging/$1/install
+  mkdir -vp ${HOME}/packaging/$1/src
+}
 
 ListPackages(){
   if [ -f "/var/otto/installed/contents" ]; then
@@ -338,7 +343,7 @@ while getopts "${OPTPARAMS}" OPT; do
     "d") Checkroot && InstallPackage "$OPTARG" ;;
     "b") CheckParameters "$OPTARG" && Checkroot && RemovePackage "$OPTARG" ;;
     "u") Checkroot && Update "$OPTARG" ;;
-    "m") Checkroot && MakePackage "$OPTARG" ;;
+    "m") MakePackage "$OPTARG" ;;
     "l") ListPackages ;;
     "N") CheckNetwork ;;
     "?") Help ;;
