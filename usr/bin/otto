@@ -301,8 +301,8 @@ DIRSTATES='1 2'
 }
 
 ListPackages(){
-  if [ -f "/var/otto/installed/contents" ]; then
-    lines "/var/otto/installed/contents"
+  if [ -f "${CONTENTS}" ]; then
+    lines "${CONTENTS}"
     exit 0
   else
     printf "${RED}ERROR:$END package list not found! This isn't a good thing...\a\n"
