@@ -285,7 +285,7 @@ MakePackage(){
   mkdir -vp ${makepkg_dir}/tmpinst
   echo "
 PKG="${1}"
-NAME="${1} X.Y.Z <CPU> <ARCH>bit Copacabana"
+NAME="${1} X.Y.Z '<CPU> <ARCH>bit' Copacabana"
 VERSION='X.Y.Z'
 PSTAMP=`date '+%Y-%m-%d'`
 VENDOR=''
@@ -331,7 +331,7 @@ Help(){
     local LC_ALL="${LANG}"
     printf "\
 [USAGE]: otto -<flags> <category>/<package>|<package filename>$PKG_FORMT
-         otto -m <folder where the package will be built>
+         otto -m <package name>
 
 ${GREEN}> help$END (-H)    - Show this help message.
 ${GREEN}> info$END (-I)    - List info about the software.
