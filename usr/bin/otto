@@ -277,11 +277,12 @@ Update(){
 MakePackage(){
   # This first implementation will be only for pure source code.
   # I need to make it more "binary-packaging-friendly".
+  local makepkg_dir="${HOME}/packaging/${1}"
   printf '%s\n' "Creating package skeleton for ${1}."
-  mkdir -vp ${HOME}/packaging/${1}
-  mkdir -vp ${HOME}/packaging/${1}/install
-  mkdir -vp ${HOME}/packaging/${1}/src
-  mkdir -vp ${HOME}/packaging/${1}/tmpinst
+  mkdir -vp ${makepkg_dir}
+  mkdir -vp ${makepkg_dir}/install
+  mkdir -vp ${makepkg_dir}/src
+  mkdir -vp ${makepkg_dir}/tmpinst
   echo "
 PKG="${1}"
 NAME="${1} X.Y.Z <CPU> <ARCH>bit Copacabana"
@@ -296,8 +297,8 @@ CLASSES=''
 DEPS=''
 BASEDIR='/'
 DIRSTATES='1 2'
-" > ${HOME}/packaging/${1}/pkginfo
-  > ${HOME}/packaging/${1}/pkgmap
+" > ${makepkg_dir}/pkginfo
+  > ${makepkg_dir}/pkgmap
 }
 
 ListPackages(){
