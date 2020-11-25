@@ -254,19 +254,26 @@ Update(){
   local index_package_version="`/usr/bin/tr -d '.' <<< "${VERSION}"`"
   local installed_package_version="`/usr/bin/grep -oP "${PKGNM}"'-[0-9]+\.[0-9]+' ${CONTENTS} | /usr/bin/tr -d '.' | /usr/bin/tr -dc '0-9'`"
   printf "Refreshing packages catalog (${mirror_basename}) "
-  {chdir "${SRCDIR}" && { /usr/bin/curl -O -# "${MIRROR}"/lastest"${INDEXFILE}" ; chdir -;}}
-  chdir "${PKGDIR}"
+  {chdir "${SRCDIR}" && { /usr/bin/curl -O -# "${MIRROR}"/lastest"${INDEXFILE}" ; chdir "${PKGDIR}";}}
   /usr/bin/7z x ${SRCDIR}/lastest"${INDEXFILE}"
-  printf '%s\n' 'Package index updated.'
+  printf '%s\n' "Package index updated (`/usr/bin/date '+%Y.%m.%d @ %H:%M:%S'`)."
   for PKGNM in "${@}"; do
-    printf '%s' "Checking updates for ${PKGNM}."
+    printf '%s\n' "Checking updates for ${PKGNM}."
     if [ "${index_package_version}" > "${installed_package_version}" ]; then
-      printf '%s' "Updating ${PKGNM}"
+      printf '%s' "Updating ${PKGNM} (${installed_package_version} -> ${index_package_version})"
       txtwait
-      /usr/bin/sed -i "/${PKGNM}-${installed_package_version}/d" ${CONTENTS}
+      /usr/bin/sed -i "/${PKGNM}-${installed_package_version}/d" "${CONTENTS}"
       /usr/bin/rm -rf /var/otto/installed/pkg/OTTO"${PKG}"
-      InstallPackage "${PKGNM}" &>> /dev/null
+      InstallPackage "${PKGNM}"
       printf '%s\n' "Updated ${PKGNM} succesfully."
+    elif [ "${index_package_version}" < "${installed_package_version}" ]; then
+      echo "${YELLOW}WARNING$END: ${PKGNM}'s index files are from an older version than installed one, downgrading."
+      printf '%s' "Downgrading ${PKGNM} (${installed_package_version} -> ${index_package_version})"
+      txtwait
+      /usr/bin/sed -i "/${PKGNM}-${installed_package_version}/d" "${CONTENTS}"
+      /usr/bin/rm -rf /var/otto/installed/pkg/OTTO"${PKG}"
+      InstallPackage "${PKGNM}"
+      printf '%s\n' "Downgraded ${PKGNM}."
     else
       printf '%s\n' "${PKGNM} is up to date."
     fi
@@ -279,15 +286,15 @@ MakePackage(){
   # I need to make it more "binary-packaging-friendly".
   local makepkg_dir="${HOME}/packaging/${1}"
   printf '%s\n' "Creating package skeleton for ${1}."
-  mkdir -vp ${makepkg_dir}
-  mkdir -vp ${makepkg_dir}/install
-  mkdir -vp ${makepkg_dir}/src
-  mkdir -vp ${makepkg_dir}/tmpinst
+  mkdir -v ${makepkg_dir}
+  mkdir -v ${makepkg_dir}/install
+  mkdir -v ${makepkg_dir}/src
+  mkdir -v ${makepkg_dir}/tmpinst
   echo "
 PKG="${1}"
 NAME="${1} X.Y.Z '<CPU> <ARCH>bit' Copacabana"
 VERSION='X.Y.Z'
-PSTAMP=`date '+%Y-%m-%d'`
+PSTAMP=`/usr/bin/date '+%Y.%m.%d'`
 VENDOR=''
 EMAIL=''
 DESC=''
@@ -299,10 +306,14 @@ BASEDIR='/'
 DIRSTATES='1 2'
 " > ${makepkg_dir}/pkginfo
   > ${makepkg_dir}/pkgmap
+  # Edit pkginfo
+  #/usr/bin/env ${EDITOR} ${makepkg_dir}/pkginfo
+  exit 0
 }
 
 ListPackages(){
   if [ -f "${CONTENTS}" ]; then
+    pcat "${CONTENTS}"
     lines "${CONTENTS}"
     exit 0
   else
