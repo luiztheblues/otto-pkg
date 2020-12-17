@@ -42,7 +42,7 @@ Eine Paketverwaltungs-Toolchain
 + Check if everything works properly;
 + May implement IPFS;
 + Add fn_ before the function name itself;
-+ Make something that replaces "/usr" or "/bin" with "${USRDIR}" or "${BINDIR}", respectively, in preference using POSIX regex;
++ Make something that replaces "/usr" or "/bin" with "${USRDIR}" or "${BINDIR}", respectively, in preference using POSIX regex for applications in MakePackage();
 + ~~Rewrite it in Go or C, because Shell sucks for big projects like this one.~~
 
 # I want to contribute, how could i do?
@@ -51,5 +51,5 @@ I will be offline in the coming three months, praticing "NoSurf" (just a nice na
 
 # License, copying, call it what you like
 [Caldera License](http://projeto-pindorama.neocities.org/_arquivos/licencas/copycenter/CALDERA_LICENSE.html), directly from 2002.  
-And no, i will not change it to a liberal version of BSD [just because your demigod Stallman told us to do it](http://www.gnu.org/licenses/bsd.en.html) and want to use parts of it in your harmful GPL'd code.  
-Do not bother me with this, otherwise i will not be polite (like i am usually) with you. :^)
+And no, i will not change it to a liberal version of BSD [just because your demigod Stallman told us to do it](http://www.gnu.org/licenses/bsd.en.html) and because you want to use parts of my code on your harmful GPL'd code.  
+Do not bother me with this, otherwise i will not be polite (as i usually am) with you. :^)
