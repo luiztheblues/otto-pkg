@@ -2,14 +2,14 @@
 Eine Paketverwaltungs-Toolchain
 
 # Flags and usage (will be added later to a real man page):
-> \\>  help$END (-H)    - Show this help message.  
-> \\>  info$END (-I)    - List info about the software.  
-> \\>  find$END (-f)    - Search for content in Otto's files.  
-> \\>  dig$END  (-d)    - Install package.  
-> \\>  bury$END (-b)    - Remove package.  
-> \\>  up2date$END (-u) - Update repository index and packages.  
-> \\>  mkpkg$END (-m)   - Build a package (using source code or binaries).  
-> \\>  list$END  (-l)   - List installed packages.
+> \>  help (-H)    - Show this help message.  
+> \>  info (-I)    - List info about the software.  
+> \>  find (-f)    - Search for content in Otto's files.  
+> \>  dig  (-d)    - Install package.  
+> \>  bury (-b)    - Remove package.  
+> \>  up2date (-u) - Update repository index and packages.  
+> \>  mkpkg (-m)   - Build a package (using source code or binaries).  
+> \>  list  (-l)   - List installed packages.
  
 # Goals:
 + Have a portable and fast package manager in ports-style (basically Gentoo's Portage done right);
@@ -46,10 +46,10 @@ Eine Paketverwaltungs-Toolchain
 + ~~Rewrite it in Go or C, because Shell sucks for big projects like this one.~~
 
 # I want to contribute, how could i do?
-Send me a [e-mail](mailto:luiz.antonio.rangel@bol.com.br), as well to [Pindorama maillists (only in portuguese)](mailto:pindorama-users@googlegroups.com) if i don't answer you.
+Send me a [e-mail](mailto:luiz.antonio.rangel@bol.com.br), as well to [Pindorama maillists (only in portuguese)](mailto:pindorama-users@googlegroups.com) if i don't answer you.  
 I will be offline in the coming three months, praticing "NoSurf" (just a nice name for "investing in knowledge and leading to better fitness"), at least in the majority of this time, so don't expect a fast response from me. Just make a patch and send it.
 
 # License, copying, call it what you like
-[Caldera License](http://projeto-pindorama.neocities.org/_arquivos/licencas/copycenter/CALDERA_LICENSE.html), directly from 2002.
-And no, i will not change it to a liberal version of BSD [just because your demigod Stallman told us to do it](http://www.gnu.org/licenses/bsd.en.html) and want to use parts of it in your harmful GPL'd code.
+[Caldera License](http://projeto-pindorama.neocities.org/_arquivos/licencas/copycenter/CALDERA_LICENSE.html), directly from 2002.  
+And no, i will not change it to a liberal version of BSD [just because your demigod Stallman told us to do it](http://www.gnu.org/licenses/bsd.en.html) and want to use parts of it in your harmful GPL'd code.  
 Do not bother me with this, otherwise i will not be polite (like i am usually) with you. :^)
