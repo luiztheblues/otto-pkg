@@ -1,5 +1,4 @@
 #!/usr/bin/env ksh 
-# Do arrays actually work on Ksh? I think that array bug is a Public Domain Ksh fault, may i try it on ksh93 later.
 # Ok, i will remember to patch it later.
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
@@ -9,38 +8,11 @@
 # Copyright (c) MMXX, Luiz Antônio Rangel et Projeto Pindorama;
 # Read LICENSE.txt @ master branch root (GitHub) for the complete license.
 
-#############    Depends    ###############
-# Korn Shell (93,PD);
-# Python 3.(4,8);
-# Libtorrent and Libtorrent bindings for Python 3.x;
-# cURL;
-# POSIX 7-Zip (p7zip);
-# Sed;
-# Awk;
-# Cut;
-# Grep;
-# Otto's libaries.
-##############     END       ##############
-
-# TO DO:
-# Optimize it;
-# Make it portable;
-# Fix the inconsistent code style;
-# Change variable names from "snake case" to "Pascal case" (or a more styled "snake case", with full names and not crappy abbreviations (like Sun Microsystems' code)).
-# Create a log function, for save every operation log in /var/otto/system/logs/otto_`date`. A little useless for now;
-# Add long name options;
-# Rewrite find() and CheckDependencies() function;
-# Check if everything works properly;
-# May implement IPFS.
-
-############# Export C locale #############
-export LANG='C'
-export LC_ALL="${LANG}"
-##############     END       ##############
-
-############# Export chdir alias ##########
-# This shall be commented when /bin/sh already has a native "chdir" command/system call, for example zsh.
-alias chdir='cd'
+############## Include Files ##############
+. /usr/lib/otto/colors.shi
+. /usr/lib/otto/blink.shi
+. /usr/lib/otto/txtwait.shi
+. /usr/lib/otto/posix-alt.shi
 ##############     END       ##############
 
 ############# Program Specifications ######
@@ -52,11 +24,14 @@ export PKG_COMPSS='7z'
 export HOST_OS="`uname -s`"
 ##############     END       ##############
 
-############## Include Files ##############
-. /usr/lib/otto/colors.shi
-. /usr/lib/otto/blink.shi
-. /usr/lib/otto/txtwait.shi
-. /usr/lib/otto/posix-alt.shi
+############# Export C locale #############
+export LANG='C'
+export LC_ALL="${LANG}"
+##############     END       ##############
+
+############# Export alias ##########
+# This shall be commented when /bin/sh already has a native "chdir" command/system call, for example zsh.
+alias chdir='cd'
 ##############     END       ##############
 
 ############## Global Variables/Subshells #
@@ -81,7 +56,7 @@ export mirror_basename=${${MIRROR#*//}%%/*}
 
 ############ ARE YA CHECKING SON? #########
 Checkroot(){
-  if [ "`id -u`" -ne 0 ]; then
+  if [ "`whoami`" != 'root' ] && [ "`whoami`" != 'toor' ]; then
     printf "${YELLOW}WARNING$END: It looks like you are not logged into toor nor root user...\nWould you like to install the program on the highest userland layer (${HIUSR}) instead of installing directly on the root of the system?\n${YELLOW}WARNING$END: Some packages ${BOLD}cannot$END be installed on the highest userland layer under any circunstances.\nRegarding the first (and only) question: [Y,N]? "
     read -r ANTWORTEN
     if /usr/bin/grep -iq '^y' <<< "$ANTWORTEN"; then
@@ -160,12 +135,13 @@ CheckRawPackage(){
 }
 
 CheckDependencies(){
-  for LIB in `printf '%s' "${DEPS}"`; do
-    if grep "${LIB}" > /dev/null 2>&1 <<< `printf '%s\n' /lib/* /usr/lib/*`; then
-      printf "${LIB} is O.K."
+  # I hope this don't become a non-intentional fork bomb, like recursive GNU auto*hell scripts.
+  for DEP in "`printf '%s' "${DEPS}"`"; do
+    if [ /usr/bin/grep -Fxq "${DEP}" "${CONTENTS}"` ]; then # I need to add support for SRV4 (a.k.a Heirloom's pkgtools) contents file, i just don't know how to do it right now.
+      printf "${DEP} is O.K."
     else
-      printf "${RED}ERROR$END: ${LIB} isn't installed. Please, install the package that's corresponds to it."
-      exit 11
+      printf "${YELLOW}WARNING$END: ${DEP} isn't installed. Installing it now."
+      Install_Package "${DEP}"" 
     fi
   done
 }
@@ -254,8 +230,7 @@ Update(){
   local index_package_version="`/usr/bin/tr -d '.' <<< "${VERSION}"`"
   local installed_package_version="`/usr/bin/grep -oP "${PKGNM}"'-[0-9]+\.[0-9]+' ${CONTENTS} | /usr/bin/tr -d '.' | /usr/bin/tr -dc '0-9'`"
   printf "Refreshing packages catalog (${mirror_basename}) "
-  {chdir "${SRCDIR}" && { /usr/bin/curl -O -# "${MIRROR}"/lastest"${INDEXFILE}" ; chdir "${PKGDIR}";}}
-  /usr/bin/7z x ${SRCDIR}/lastest"${INDEXFILE}"
+  {chdir "${PKGDIR}" && { /usr/bin/git clone -v http://github.com/Projeto-Pindorama/meta.git .;}}
   printf '%s\n' "Package index updated (`/usr/bin/date '+%Y.%m.%d @ %H:%M:%S'`)."
   for PKGNM in "${@}"; do
     printf '%s\n' "Checking updates for ${PKGNM}."
@@ -338,21 +313,9 @@ See CONTRIBUTORS.txt file for more.
 }
 
 Help(){
-    local LANG='en_US.UTF-8'
-    local LC_ALL="${LANG}"
     printf "\
 [USAGE]: otto -<flags> <category>/<package>|<package filename>$PKG_FORMT
-         otto -m <package name>
-
-${GREEN}> help$END (-H)    - Show this help message.
-${GREEN}> info$END (-I)    - List info about the software.
-${GREEN}> find$END (-f)    - Search for content in Otto's files.
-${GREEN}> dig$END  (-d)    - Install package.
-${GREEN}> bury$END (-b)    - Remove package.
-${GREEN}> up2date$END (-u) - Update repository index and packages.
-${GREEN}> mkpkg$END (-m)   - Build a package (using source code or binaries).
-${GREEN}> list$END  (-l)   - List installed packages.
-"
+         otto -m <package name>"
   exit 0
 }
 
