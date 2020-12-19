@@ -329,8 +329,9 @@ OPTPARAMS="NHIlfvrd:b:u:m:"
 while getopts "${OPTPARAMS}" OPT; do
   case "${OPT}" in
     "H") Help ;;
-    "I"|"v") Info ;;
+    "I") Info ;;
     "f") find ;;
+    "v") export VERBOSE=1 ;;
     "r") export RAW_PKG=1 ;;
     "d") Checkroot && InstallPackage "${OPTARG}" ;;
     "b") CheckParameters "${OPTARG}" && Checkroot && RemovePackage "${OPTARG}" ;;
