@@ -32,6 +32,7 @@ export LC_ALL="${LANG}"
 ############# Export alias ##########
 # This shall be commented when /bin/sh already has a native "chdir" command/system call, for example zsh.
 alias chdir='cd'
+alias editor="/usr/bin/env ${EDITOR}"
 ##############     END       ##############
 
 ############## Global Variables/Subshells #
@@ -119,17 +120,17 @@ CheckRawPackage(){
     I="${PKGNM}" # I've called it "I" because i couldn't think of a name, sorry.
     BASENAME=`basename $I`
     PKG_FILENAME=`/usr/bin/sed 's/.psl//' <<< $I`
-    EXTR_CMD=`/usr/bin/7z x $I -o "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"`
+    alias extractpkg="/usr/bin/7z x $I -o "${SRCDIR}"/uncompressed-"${PKG_FILENAME}""
     EXTR_MSG="Extracting ${BASENAME}"
     # Source pkginfo
-    SOURCE_PKGINFO=`. "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkginfo`
+    alias sourcepkginfo=". "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkginfo"
   else 
     # Run the DownloadPackage() function
     DownloadPackage
     # Source pkginfo
-    SOURCE_PKGINFO=`. "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkginfo`
+    alias sourcepkginfo=". "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkginfo"
     # For uncompress
-    EXTR_CMD=`/usr/bin/7z x "${SRCDIR}"/"${PKG_FILENAME}""${PKG_FORMT}" -o "${SRCDIR}"/uncompressed-"${PKG_FILENAME}" -bb1` # For uncompressing downloaded packages, local pkginfo needs to be sourcered first.
+    alias extractpkg="/usr/bin/7z x "${SRCDIR}"/"${PKG_FILENAME}""${PKG_FORMT}" -o "${SRCDIR}"/uncompressed-"${PKG_FILENAME}" -bb1" # For uncompressing downloaded packages, local pkginfo needs to be sourcered first.
     EXTR_MSG="Extracting ${PKG_FILENAME}${PKG_FORMT}"
   fi
 }
@@ -151,7 +152,7 @@ CheckDependencies(){
 Uncompress(){
   printf '%s' "${EXTR_MSG}"
   txtwait &
-  $EXTR_CMD
+  extractpkg
   /usr/bin/tar -vxf "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/src.tar && rm -v "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/src.tar
 }
 
@@ -200,8 +201,8 @@ InstallPackage(){
   for PKGNM in "${@}"; do
     CheckRawPackage
     Uncompress
-    $SOURCE_PKGINFO # Source package extracted pkginfo (i know, it's messy but it works in theory)
-    PKGNM="${CATEGORY}/${PKG}"
+    sourcepkginfo # Source package extracted pkginfo (i know, it's messy but it works in theory)
+    export PKGNM="${CATEGORY}/${PKG}"
     CheckDependencies
     CheckDisk
     Build
@@ -282,7 +283,7 @@ DIRSTATES='1 2'
 " > ${makepkg_dir}/pkginfo
   > ${makepkg_dir}/pkgmap
   # Edit pkginfo
-  #/usr/bin/env ${EDITOR} ${makepkg_dir}/pkginfo
+  #editor ${makepkg_dir}/pkginfo
   exit 0
 }
 
