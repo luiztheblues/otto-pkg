@@ -35,33 +35,26 @@ alias editor="/usr/bin/env ${EDITOR}"
 alias sourcelocalpkginfo=". "${PKGDIR}"/"${TORRENT}"/pkginfo"
 ##############     END       ##############
 
-############## Global Variables/Subshells #
-# Shell to be used at "dropping Shell sessions"
-if [ -z "${DROP_SHELL}" ]; then
-  export SHELL='ksh'
-else
-  export SHELL="${DROP_SHELL}"
-fi
-# Package and category name pipeline
-export PKG="`/usr/bin/cut -d "/" -f 2 <<< "${PKGNM}"`"
-export CATEGORY="`/usr/bin/cut -d "/" -f 1 <<< "${PKGNM}"`"
-# Package filename
-export PKG_FILENAME="`/usr/bin/sed 's/ /./g' <<< ${NAME}`"
-# POSIX regex that will remove 'https://' and anything after '.<tld>'
+############## Global Variables #
+[ -z "${DROP_SHELL}" ] && export SHELL='ksh' || export SHELL="${DROP_SHELL}"
 export mirror_basename=${${MIRROR#*//}%%/*}
 ##############     END       ##############
 
+# Subshells
+alias getPKG_FILENAME="printf '%s' "${NAME}" | tr ' ' '.'"
+# END
+
 # Load the configuration file:
-  if [ -f "/etc/make.cfg" ]; then
-    . "/etc/make.cfg"
-  else
-    printf '%b' "${RED}ERROR$END: make.cfg not found!\nCopy this file from the installation media (or download it from the offcial repo) and configure it."
-    exit 1
-  fi
+if [ -f /etc/make.cfg ]; then
+  . /etc/make.cfg
+else
+  printf '%b' "${RED}ERROR$END: make.cfg not found!\nCopy this file from the installation media (or download it from the offcial repo) and configure it."
+  exit 1
+fi
 
-############## Script Functions ###########
+# Script Functions
 
-############ ARE YA CHECKING SON? #########
+# ARE YA CHECKING SON?
 Checkroot(){
   if [ "`whoami`" != 'root' ] && [ "`whoami`" != 'toor' ]; then
     printf '%b' "${YELLOW}WARNING$END: It looks like you are not logged into toor nor root user...\nWould you like to install the program on the highest userland layer (${HIUSR}) instead of installing directly on the root of the system?\n${YELLOW}WARNING$END: Some packages ${BOLD}cannot$END be installed on the highest userland layer under any circunstances.\nRegarding the first (and only) question: [Y,N]? "
@@ -90,9 +83,9 @@ CheckNetwork(){
   printf '%s' 'Checking network connection'
   txtwait
   if [ `printf "GET ${mirror_basename} HTTP/1.0\n\n" | /usr/bin/netcat "${mirror_basename}" 80 > /dev/null 2>&1` ]; then
-    printf '%b\n' "[ ${GREEN}O.K.$END ]\n"
+    printf '%b' "[ ${GREEN}O.K.$END ]\n"
   else
-    printf '%b\n' "[ ${RED}FAILED$END ]\n"
+    printf '%b' "[ ${RED}FAILED$END ]\n"
     printf '%b\n' "${RED}ERROR$END: Apparently, this box isn't connected to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}$PKG_FORMT$END which contains everything necessary to install the program), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}otto dig [raw|-r]$END.\nIf you expected to have networking on this box, do some checks. Check if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
     exit 11
   fi
@@ -116,27 +109,28 @@ Estimated total disk space: ${DSKGROSSE}MB
 Estimated used space: ${DSKVERF}MB
 Estimated space available: ${BENUTZT}MB
 Estimated space to be consumed (build files): ${PKGGROSSE_CALC}MB
-Estimated space after install: `/usr/bin/bc <<< "scale=3; ${DSKVERF} - ${PKGGROSSE_CALC}"`MB
+Estimated free space: `/usr/bin/bc <<< "scale=3; ${DSKVERF} - ${PKGGROSSE_CALC}"`MB
 "
 }
 
 CheckRawPackage(){
   if [ "${RAW_PKG}" = '1' ]; then 
     # For uncompress
-    I="${PKGNM}" # I've called it "I" because i couldn't think of a name, sorry.
+    PKGNM="${I}" # I've called it "I" because i couldn't think of a name, sorry.
     BASENAME=`basename $I`
     PKG_FILENAME=${I%%$PKG_FORMT}
-    alias extractpkg="/usr/bin/7z x $I -o ${SRCDIR}/uncompressed-${PKG_FILENAME}"
+    alias extractpkg="/usr/bin/7z x $I -o${SRCDIR}/uncompressed-${PKG_FILENAME}"
     EXTR_MSG="Extracting ${BASENAME}"
     # Source pkginfo
     alias sourcepkginfo=". ${SRCDIR}/uncompressed-${PKG_FILENAME}/pkginfo"
   else 
     # Run the DownloadPackage() function
     DownloadPackage
+    PKG_FILENAME=`getPKG_FILENAME`
     # Source pkginfo
     alias sourcepkginfo=". ${SRCDIR}/uncompressed-${PKG_FILENAME}/pkginfo"
     # For uncompress
-    alias extractpkg="/usr/bin/7z x ${SRCDIR}/${PKG_FILENAME}${PKG_FORMT} -o ${SRCDIR}/uncompressed-${PKG_FILENAME} -bb1" # For uncompressing downloaded packages, local pkginfo needs to be sourcered first.
+    alias extractpkg="/usr/bin/7z x ${SRCDIR}/${PKG_FILENAME}${PKG_FORMT} -o${SRCDIR}/uncompressed-${PKG_FILENAME} -bb1" # For uncompressing downloaded packages, local pkginfo needs to be sourcered first.
     EXTR_MSG="Extracting ${PKG_FILENAME}${PKG_FORMT}"
   fi
 }
@@ -144,7 +138,7 @@ CheckRawPackage(){
 CheckDependencies(){
   # I hope this don't become a non-intentional fork bomb, like recursive GNU auto*hell scripts.
   for DEP in `printf '%s' "${DEPS}"`; do
-    if [ "`/usr/bin/grep -Fxq "${DEP}" "${CONTENTS}"`" ]; then # I need to add support for SRV4 (a.k.a Heirloom's pkgtools) contents file, i just don't know how to do it right now.
+    if [ "`/usr/bin/grep -Fxq "${DEP}" "${CONTENTS}"`" ]; then
       printf '%s\n' "${DEP} is O.K."
     else
       printf '%b\n' "${YELLOW}WARNING$END: ${DEP} isn't installed. Installing it now."
@@ -153,7 +147,7 @@ CheckDependencies(){
   done
 }
 
-##############  Sure i am, dad.  ############
+# Sure i am, dad.
 
 DownwloadPackage(){
   if [ "${SYNC_TYPE}" = 'bittorrent' ]; then
@@ -191,6 +185,7 @@ EOD
 GenerateLocalpkginfo(){
 cat > /var/otto/installed/pkg/OTTO"${PKG}"/pkginfo <<EOD
 `cat "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkginfo`
+printf '%s\n' "INSTDATE='`/usr/bin/date '+%b %e %Y %H:%M:%S'`'"
 EOD
 }
 
@@ -234,7 +229,7 @@ RemovePackage(){
 
 Update(){
   local index_package_source="`. ${PKGDIR}/${PKGNM}/pkginfo`"
-  local index_package_version="`/usr/bin/tr -d '.' <<< "${VERSION}"`"
+  local index_package_version="`printf '%s'  "${VERSION}" | /usr/bin/tr -d '.'`"
   local installed_package_version="`/usr/bin/grep -oP ${PKGNM}'-[0-9]+\.[0-9]+' ${CONTENTS} | /usr/bin/tr -d '.' | /usr/bin/tr -dc '0-9'`"
   printf '%s\n' "Refreshing packages catalog \(${mirror_basename}\) "
   { chdir "${PKGDIR}" && { /usr/bin/git clone -v http://github.com/Projeto-Pindorama/meta.git .; } }
@@ -274,7 +269,7 @@ MakePackage(){
   mkdir -v "${makepkg_dir}"/src
   mkdir -v "${makepkg_dir}"/tmpinst
   mkdir -v "${DESTDIR}"
-  echo "
+  cat > ${makepkg_dir}/pkginfo <<EOD 
 PKG="${1}"
 NAME="${1} X.Y.Z '<CPU> <ARCH>bit' Copacabana"
 VERSION='X.Y.Z'
@@ -288,13 +283,18 @@ CLASSES=''
 DEPS=''
 BASEDIR='/'
 DIRSTATES='1 2'
-" > ${makepkg_dir}/pkginfo
+EOD
   > ${makepkg_dir}/pkgmap
   # Where are we dropping, boys? To a Shell?
   #printf '%s\n' "Dropping to a UNIX Shell (${SHELL})"
   #/bin/sh -c "cd ${makepkg_dir} ; /usr/bin/env ${SHELL}"
   # Edit pkginfo
   #editor "${makepkg_dir}"/pkginfo
+  # Map it with fd(1)
+  #printf '%s\n' "Dropping to a UNIX Shell (${SHELL})"
+  #/usr/bin/fd . ${DESTDIR} > "${makepkg_dir}"/pkgmap
+  # Change /usr to ${USRDIR} in pkgmap (after mapping the compiled package with fd(1))
+  #/usr/bin/sed 's/\/usr/${USRDIR}/g; s/\/bin/${BINDIR}/g; s/\/etc/${ETC}/g' "${makepkg_dir}"/pkgmap > /tmp/pkgmap_"${1}" && mv /tmp/pkgmap_"${1}" "${makepkg_dir}"/pkgmap
   exit 0
 }
 
@@ -309,8 +309,24 @@ ListPackages(){
   fi
 }
 
+PackageInfo(){
+  . /var/otto/installed/pkg/OTTO"${PKG}"/pkginfo
+  local FILES="`lines /var/otto/installed/pkg/OTTO"${PKG}"/pkgmap`"
+  printf '%s' "
+PACKAGE: ${PKG}
+DESCRIPTION: ${DESC}  
+CATEGORY: ${CATEGORY}
+ARCH: ${ARCH}
+VERSION: ${VERSION}
+BASEDIR:  ${BASEDIR}
+PRODUCTION STAMP:  ${PSTAMP}
+INSTALL DATE: ${INSTDATE}
+FILES AND FOLDERS: ${FILES} 
+"
+}
+
 ProgramInfo(){ 
-  printf "\
+  printf '%s' "\
 ${BOLD}Otto, eine Paketverwaltungs-Toolchain.$END
 Ausgabe: ${ausgabe}
 Paketformat: ${PKG_FORMT}
@@ -325,7 +341,7 @@ See CONTRIBUTORS.txt file for more.
 }
 
 Help(){
-    printf "\
+  printf "\
 [USAGE]: otto -<flags> <category>/<package>|<package filename>$PKG_FORMT
          otto -m <package name>"
   exit 0
@@ -334,13 +350,16 @@ Help(){
 #find(){
 
 #}
-##############     END      #################
+# END
 
-############## CASE AND GETOPT #################
-OPTPARAMS="NHIlfvrd:b:u:m:" 
+
+
+# CASE AND GETOPT
+OPTPARAMS="NHiIlfvrd:b:u:m:" 
 while getopts "${OPTPARAMS}" OPT; do
   case "${OPT}" in
     "H") Help ;;
+    "i") PackageInfo ;;
     "I") ProgramInfo ;;
     "f") find ;;
     "v") export VERBOSE=1 ;;
@@ -354,4 +373,4 @@ while getopts "${OPTPARAMS}" OPT; do
     "?") Help ;;
   esac
 done
-############## CASE AND GETOPT #################
+# END
