@@ -147,7 +147,7 @@ CheckDependencies(){
       POINT=$(( $POINT + 1 )) 
     fi
   done
-  [ -z "${dependency_array[@]}" ] && { printf '%b\n' "${YELLOW}WARNING$END: ${DEP} isn't installed. Installing it now." ; InstallPackage ${dependency_array[@]}} || printf '%s\n' 'No dependencies to install, we're good to go.'
+[ -z "${dependency_array[@]}" ] && { printf '%b\n' "${YELLOW}WARNING$END: ${DEP} isn't installed. Installing it now." ; InstallPackage ${dependency_array[@]}} || printf '%s\n' 'No dependencies to install, we're good to go.'
 }
 
 # Sure i am, dad.
