@@ -148,6 +148,7 @@ CheckDependencies(){
     fi
   done
   [ -z "${dependency_array[@]}" ] && { printf '%b\n' "${YELLOW}WARNING$END: ${DEP} isn't installed. Installing it now." ; InstallPackage ${dependency_array[@]}} || printf '%s\n' 'No dependencies to install, we're good to go.'
+  unset POINT dependency_array
 }
 
 # Sure i am, dad.
