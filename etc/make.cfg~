@@ -13,7 +13,7 @@ LOSRCDIR='/var/otto/src'
 CONTENTS='/var/otto/installed/contents'
 
 # Options
-MIRROR='http://pindorama.tk/downloads/otto/packages'
+MIRROR='https://luiznet.tk/otto/packages'
 AUTOCLEAN='NO' # YES for cleaning automatically compilation files (source-code and sort of).
 EDITOR='ed' # Ed is the standard text editor.
 DROP_SHELL=''
