@@ -235,7 +235,7 @@ RemovePackage(){
 
 fn_Sync(){
   printf '%s\n' "Refreshing packages metadata \(${mirror_basename}\)..."
-  curl -s "${MIRROR}"/SERVERINFO.txt "${MIRROR}"/SERVERRULES.txt
+  curl -s "${mirror_basename}"/SERVERINFO.txt "${mirror_basename}"/SERVERRULES.txt
   { chdir "${SRCDIR}" && { curl -O -# "${MIRROR}"/lastest_meta"${INDEXFILE}" ; chdir "${PKGDIR}" && 7z x ${SRCDIR}/lastest_meta"${INDEXFILE}" -o"${PKGDIR}" -bb1} }
   printf '%s\n' "Package index updated \(`date '+%Y.%m.%d @ %H:%M:%S'`\)."
 }
