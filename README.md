@@ -25,9 +25,11 @@ Eine Paketverwaltungs-Toolchain
 + cURL ([curl(1)](http://curl.se/));
 + Linus Torvalds' Git ([git(1)](http://git-scm.com/));
 + POSIX 7-Zip ([7z(1)](http://sourceforge.net/projects/p7zip/));
-+ bc(1) (tested using [Galvin D. Howard's implementation of bc(1)](http://git.yzena.com/), but it shall work with any implementation)
++ fd ([fd(1)](https://github.com/sharkdp/fd));
++ tar(1) (tested using [Jörg Schilling's fork of Sun Microsystems' tar(1)](http://freshmeat.sourceforge.net/projects/star), but it shall works with POSIX tar(1) or any other implementation of tar(1) compatible with POSIX standards. **NOTE**: Plan 9's tar(1) won't work with it, unfortunately, because files generated with it aren't compatible with POSIX tar(1) as far i tested);
++ bc(1) (tested using [Galvin D. Howard's implementation of bc(1)](http://git.yzena.com/), but it shall work with any implementation);
 + sed(1) (tested using GNU's implementation of sed(1), with some extensions that i will need to remove later);
-+ awk(1) (tested using GNU's implementation of awk(1), but in theory it works with Sun's nawk(1) too. If it not, [send me an e-mail](mailto:luiz.antonio.rangel@bol.com.br) or a pull request, please);
++ awk(1) (tested using GNU's implementation of awk(1), but in theory it works with Sun Microsystems' nawk(1) too. If it not, [send me an e-mail](mailto:luiz.antonio.rangel@bol.com.br) or a pull request, please);
 + cut(1) (tested using [OpenBSD's cut(1) via lobase](http://github.com/ataraxialinux/lobase/tree/master/usr.bin/cut));
 + grep(1) (tested using GNU's implementation of grep(1), but in theory it works with the POSIX implementation too. If it not, [send me an e-mail](mailto:luiz.antonio.rangel@bol.com.br) or a pull request, please);
 + Otto's libaries (see [usr/lib/otto](http://github.com/luiztheblues/otto-pkg/tree/master/usr/lib/otto));
@@ -43,12 +45,11 @@ Eine Paketverwaltungs-Toolchain
 + Check if everything works properly;
 + May implement IPFS;
 + Add fn_ before the function name itself;
-+ Make something that replaces "/usr" or "/bin" with "${USRDIR}" or "${BINDIR}", respectively, in preference using POSIX regex for applications in MakePackage();
 + Create a USE Flags-like system;
 + ~~Rewrite it in Go or C, because Shell sucks for big projects like this one.~~
 
 # I want to contribute, how could i do?
-Send me a [e-mail](mailto:luiz.antonio.rangel@bol.com.br), as well to [Pindorama maillists (only in portuguese)](mailto:pindorama-users@googlegroups.com) if i don't answer you.  
+Send me a [e-mail](mailto:luiz.antonio.rangel@bol.com.br), as well to [Pindorama maillists (only in portuguese for now)](mailto:pindorama-users@googlegroups.com) if i don't answer you.  
 I will be offline in the coming three months, praticing "NoSurf" (just a nice name for "investing in knowledge and leading to better fitness"), at least in the majority of this time, so don't expect a fast response from me. Just make a patch and send it.
 
 # License, copying, call it what you like
