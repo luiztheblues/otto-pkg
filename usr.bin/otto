@@ -59,7 +59,7 @@ Checkroot(){
       export SRCDIR="${HISRCDIR}"
       export DIRISTATE=2
     else
-      printf '%s\n' 'Alright so, exiting...'
+      printf '%s\n' "${RED}ERROR$END: The current user denied local installation. Exit code is 130."
       exit 130
     fi
   else
@@ -72,15 +72,16 @@ Checkroot(){
 }
 
 CheckNetwork(){
-  # $MIRROR is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
+  # ${MIRROR} is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
   printf '%s' 'Checking network connection'
   txtwait
   if [ `printf "GET ${mirror_basename} HTTP/1.0\n\n" | netcat "${mirror_basename}" 80 > /dev/null 2>&1` ]; then
-    printf '%b' "[ ${GREEN}O.K.$END ]\n"
+    printf '%b\n' "[ ${GREEN}O.K.$END ]"
+    return 0
   else
-    printf '%b' "[ ${RED}FAILED$END ]\n"
-    printf '%b\n' "${RED}ERROR$END: Apparently, this box isn't connected to the World Wide Web.\a\nIf you don't have a internet connection, try to download the raw package (a ${YELLOW}${PKG_FORMT}$END which contains everything necessary to install the program), save it in a diskette/CD/SDCard/USB and install it using ${YELLOW}'otto -dr'$END.\nIf you expected to have networking on this box, do some checks.\nCheck if the network daemon is running, if the drivers are enabled on the Kernel and if the physical devices are even working/turned on.\n"
-    return 11
+    printf '%b\n' "[ ${RED}FAILED$END ]"
+    printf '%b\n' "${RED}ERROR$END: Network is unreachable or server is down. Exit code is 11."
+    exit 11
   fi
 }
 
@@ -111,7 +112,7 @@ CheckRawPackage(){
   if [ "${RAW_PKG}" = '1' ]; then 
     # For uncompress
     PKGNM="${I}" # I've called it "I" because i couldn't think of a name, sorry.
-    BASENAME=`basename $I`
+    BASENAME=`basename ${I}`
     PKG_FILENAME=${I%%$PKG_FORMT}
     alias extractpkg="/usr/bin/7z x ${I} -o${SRCDIR}/uncompressed-${PKG_FILENAME}"
     EXTR_MSG="Extracting ${BASENAME}"
@@ -159,7 +160,7 @@ DownwloadPackage(){
     sourcelocalpkginfo
     chdir "${SRCDIR}" && { curl -O -# "`cat ${PKGDIR}/${PKG}/pkglink`" ; chdir -;}
   else
-    printf "${RED}ERROR$END: ${YELLOW}SYNC_TYPE$END not set @ /etc/make.cfg.\nAre you trying to install a local package? Use ${YELLOW}-r$END with ${YELLOW}-d$END"
+    printf '%b' "${RED}ERROR$END: ${YELLOW}SYNC_TYPE$END not set at /etc/make.cfg.\nRead manual pages for more information. Exit code is 1."
     exit 1
  fi
 }
@@ -194,15 +195,6 @@ EOD
   return 0
 }
 
-AutoClean(){
-  if [ "${AUTOCLEAN}" = 'YES' ]; then
-    printf '%s\n' "Cleaning "${CATEGORY}"/"${PKG}" sources." ; rm -rvf "${SRCDIR}"/"uncompressed-*" && rm -vf "${SRCDIR}"/*"${PKG_FORMT}"
-  else
-    printf '%b\n' "${YELLOW}WARNING$END: Autocleaning is disabled, trash will stay in the system until someone with the needed permissions deletes them."
-  fi
-  return 0
-}
-
 InstallPackage(){
   printf "Packages to install: ${#@}\n" 
   for PKGNM in "${@}"; do
@@ -218,7 +210,6 @@ InstallPackage(){
     GenerateLocalpkginfo
     printf '%s\n' "${PKGNM}-${VERSION}" >> ${CONTENTS}
   done
-  AutoClean
   return 0
 }
 
