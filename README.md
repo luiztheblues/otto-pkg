@@ -44,7 +44,6 @@ Eine Paketverwaltungs-Toolchain
 + Rewrite find() and CheckDependencies() function;
 + Check if everything works properly;
 + May implement IPFS;
-+ Add fn_ before the function name itself;
 + Create a USE Flags-like system;
 + ~~Rewrite it in Go or C, because Shell sucks for big projects like this one.~~
 

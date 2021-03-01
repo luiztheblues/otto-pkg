@@ -38,7 +38,7 @@ alias getPKG_FILENAME="printf '%s' "${NAME}" | tr ' ' '.'"
 # Script Functions
 
 # ARE YA CHECKING SON?
-Checkroot(){
+fn_Checkroot(){
   if [ "`whoami`" != 'root' ] && [ "`whoami`" != 'toor' ]; then
     printf '%b' "${YELLOW}WARNING$END: It looks like you are not logged into toor nor root user...\nWould you like to install the program on the highest userland layer (${HIUSR}) instead of installing directly on the root of the system?\n${YELLOW}WARNING$END: Some packages ${BOLD}cannot$END be installed on the highest userland layer under any circunstances.\nRegarding the first (and only) question: [Y,N]? "
     read ANTWORTEN
@@ -65,7 +65,7 @@ Checkroot(){
   fi
 }
 
-CheckNetwork(){
+fn_CheckNetwork(){
   # ${MIRROR} is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
   printf '%s' 'Checking network connection'
   txtwait
@@ -79,14 +79,14 @@ CheckNetwork(){
   fi
 }
 
-CheckParameters(){
+fn_CheckParameters(){
   if [ -z "${OPTARG}" ]; then
     printf '%s\n' "${RED}ERROR$END: Insufficient parameters. Exit code is 1."
     exit 1
   fi
 }
 
-CheckDisk(){
+fn_CheckDisk(){
   BENUTZT=`df -m / | tail -1 | grep '[0-9]' | awk '{print $3}'`
   DSKVERF=`df -m / | tail -1 | grep '[0-9]' | awk '{print $4}'`
   DSKGROSSE=$[${BENUTZT} + ${DSKVERF}]
@@ -102,7 +102,7 @@ Estimated free space: `bc <<< "scale=3; ${DSKVERF} - ${PKGGROSSE_CALC}"`MB
   return 0
 }
 
-CheckRawPackage(){
+fn_CheckRawPackage(){
   if [ "${RAW_PKG}" = '1' ]; then 
     # For uncompress
     PKGNM="${I}" # I've called it "I" because i couldn't think of a name, sorry.
@@ -124,7 +124,7 @@ CheckRawPackage(){
   fi
 }
 
-CheckDependencies(){
+fn_CheckDependencies(){
   # I hope this don't become a non-intentional fork bomb, like recursive GNU auto*hell scripts.
   set -a dependency_array
   dependencies_index="${SRCDIR}/uncompressed-${PKG_FILENAME}/install/depend"
@@ -138,14 +138,14 @@ CheckDependencies(){
       POINT=$(( $POINT + 1 )) 
     fi
   done
-  [ -z "${dependency_array[@]}" ] && { printf '%b\n' "${YELLOW}WARNING$END: ${DEP} isn't installed. Installing it now." ; InstallPackage ${dependency_array[@]}} || printf '%s\n' 'No dependencies to install, we'\''re good to go.'
+  [ -z "${dependency_array[@]}" ] && { printf '%b\n' "${YELLOW}WARNING$END: ${DEP} isn't installed. Installing it now." ; fn_InstallPackage ${dependency_array[@]}} || printf '%s\n' 'No dependencies to install, we'\''re good to go.'
   unset POINT dependency_array
   return 0
 }
 
 # Sure i am, dad.
 
-DownwloadPackage(){
+fn_DownloadPackage(){
   if [ "${SYNC_TYPE}" = 'bittorrent' ]; then
     TORRENT="${PKGNM}"
     sourcelocalpkginfo
@@ -159,7 +159,7 @@ DownwloadPackage(){
  fi
 }
 
-Uncompress(){
+fn_Uncompress(){
   printf '%s' "${EXTR_MSG}"
   txtwait &
   extractpkg
@@ -167,21 +167,21 @@ Uncompress(){
   return 0
 }
 
-Build(){
+fn_Build(){
   # Scripts for building the package shall be minimal and pure POSIX
   /bin/sh "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/install/checkinstall
   /bin/sh "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/install/makebuild
   return 0
 }
 
-GenerateLocalpkgmap(){
+fn_GenerateLocalpkgmap(){
 cat > `printf '%s' "${INSTDIR}"`/OTTO"${PKG}"/pkgmap <<EOD
 `cat "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkgmap`
 EOD
   return 0
 } # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
 
-GenerateLocalpkginfo(){
+fn_GenerateLocalpkginfo(){
 cat > "${INSTDIR}"/OTTO"${PKG}"/pkginfo <<EOD
 `cat "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkginfo`
 printf '%s\n' "INSTDATE='`/usr/bin/date '+%b %e %Y %H:%M:%S'`'"
@@ -189,26 +189,26 @@ EOD
   return 0
 }
 
-InstallPackage(){
+fn_InstallPackage(){
   printf "Packages to install: ${#@}\n" 
   for (( i = 0; i < "${#@}"; i++))
   {
-    CheckRawPackage
-    Uncompress
+    fn_CheckRawPackage
+    fn_Uncompress
     sourcepkginfo # Source package extracted pkginfo (i know, it's messy but it works in theory)
     export PKGNM="${CATEGORY}/${PKG}"
-    CheckDependencies
-    CheckDisk
-    Build
+    fn_CheckDependencies
+    fn_CheckDisk
+    fn_Build
     mkdir ${INSTDIR}/OTTO"${PKG}"
-    GenerateLocalpkgmap
-    GenerateLocalpkginfo
+    fn_GenerateLocalpkgmap
+    fn_GenerateLocalpkginfo
     printf '%s\n' "${PKGNM}-${VERSION}" >> ${CONTENTS}
   }
   return 0
 }
 
-RemovePackage(){
+fn_RemovePackage(){
   for (( i=0; i < "${#@}"; i++ ))
   { 
     PKGNM=${@[${I}]}
@@ -228,7 +228,7 @@ fn_Sync(){
   printf '%s\n' "Package index updated \(`date '+%Y.%m.%d @ %H:%M:%S'`\)."
 }
 
-Update(){ 
+fn_Update(){ 
   local index_package_source="`. ${PKGDIR}/${PKGNM}/pkginfo`"
   local index_package_version="`printf '%s'  "${VERSION}" | tr -d '.'`"
   local installed_package_version="`grep -oP ${PKGNM}'-[0-9]+\.[0-9]+' ${CONTENTS} | tr -d '.' | tr -dc '0-9'`"
@@ -240,15 +240,15 @@ Update(){
       txtwait
       sed -i "/${PKGNM}-${installed_package_version}/d" "${CONTENTS}"
       rm -rf /var/otto/installed/pkg/OTTO"${PKG}"
-      InstallPackage "${PKGNM}"
-      printf '%s\n' "Updated ${PKGNM} succesfully."
+      fn_InstallPackage "${PKGNM}"
+      printf '%s\n' "fn_Updated ${PKGNM} succesfully."
     elif [ "${index_package_version}" \< "${installed_package_version}" ]; then
       echo "${YELLOW}WARNING$END: ${PKGNM}'s index files are from an older version than installed one, downgrading."
       printf '%s' "Downgrading ${PKGNM} \(${installed_package_version} -> ${index_package_version}\)"
       txtwait
       sed -i "/${PKGNM}-${installed_package_version}/d" "${CONTENTS}"
       rm -rf /var/otto/installed/pkg/OTTO"${PKG}"
-      InstallPackage "${PKGNM}"
+      fn_InstallPackage "${PKGNM}"
       printf '%s\n' "Downgraded ${PKGNM}."
     else
       printf '%s\n' "${PKGNM} is up to date."
@@ -257,7 +257,7 @@ Update(){
   return 0
 }
 
-MakePackage(){
+fn_MakePackage(){
   # This first implementation will be only for pure source code.
   # I need to make it more "binary-packaging-friendly".
   export makepkg_dir="${HOME}/packaging/${1}"
@@ -296,7 +296,7 @@ EOD
   exit 0
 }
 
-ListPackages(){
+fn_ListPackages(){
   if [ -f "${CONTENTS}" ]; then
     pcat "${CONTENTS}"
     lines "${CONTENTS}"
@@ -307,7 +307,7 @@ ListPackages(){
   fi
 }
 
-PackageInfo(){
+fn_PackageInfo(){
   . /var/otto/installed/pkg/OTTO"${PKG}"/pkginfo
   local FILES="`lines /var/otto/installed/pkg/OTTO"${PKG}"/pkgmap`"
   printf '%s' "
@@ -324,7 +324,7 @@ FILES AND FOLDERS: ${FILES}
   return 0
 }
 
-ProgramInfo(){ 
+fn_ProgramInfo(){ 
   printf '%s' "\
 ${BOLD}Otto, eine Paketverwaltungs-Toolchain.$END
 Ausgabe: ${ausgabe}
@@ -340,7 +340,7 @@ See CONTRIBUTORS.txt file for more.
   exit 0
 }
 
-Help(){
+fn_Help(){
   printf "\
 [USAGE]: otto -[i|v|r|d|b|u] <category>/<package> | -dr <package filename>${PKG_FORMT} | -m <package name> | -[N|H|I|l|f|S|?]
 For more information about what each one of these flags mean, type 'man otto' in your Shell."
@@ -355,20 +355,20 @@ fn_main(){
 OPTPARAMS="NHiIlfvrd:b:u:m:S" 
 while getopts "${OPTPARAMS}" OPT; do
   case "${OPT}" in
-    "H") Help ;;
-    "i") PackageInfo ;;
-    "I") ProgramInfo ;;
+    "H") fn_Help ;;
+    "i") fn_PackageInfo ;;
+    "I") fn_ProgramInfo ;;
     "f") fn_FindPackage ;;
     "v") export VERBOSE=1 ;;
     "r") export RAW_PKG=1 ;;
-    "d") Checkroot && InstallPackage "${OPTARG}" ;;
-    "b") CheckParameters "${OPTARG}" && Checkroot && RemovePackage "${OPTARG}" ;;
-    "S") Checkroot && fn_Sync ;;
-    "u") Checkroot && Update "${OPTARG}" ;;
-    "m") MakePackage "${OPTARG}" ;;
-    "l") ListPackages ;;
-    "N") CheckNetwork ;;
-    "?") Help ;;
+    "d") fn_Checkroot && fn_InstallPackage "${OPTARG}" ;;
+    "b") fn_CheckParameters "${OPTARG}" && fn_Checkroot && fn_RemovePackage "${OPTARG}" ;;
+    "S") fn_Checkroot && fn_Sync ;;
+    "u") fn_Checkroot && fn_Update "${OPTARG}" ;;
+    "m") fn_MakePackage "${OPTARG}" ;;
+    "l") fn_ListPackages ;;
+    "N") fn_CheckNetwork ;;
+    "?") fn_Help ;;
   esac
 done
 }
