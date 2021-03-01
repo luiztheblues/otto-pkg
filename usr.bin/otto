@@ -43,6 +43,7 @@ fn_Checkroot(){
     printf '%b' "${YELLOW}WARNING$END: It looks like you are not logged into toor nor root user...\nWould you like to install the program on the highest userland layer (${HIUSR}) instead of installing directly on the root of the system?\n${YELLOW}WARNING$END: Some packages ${BOLD}cannot$END be installed on the highest userland layer under any circunstances.\nRegarding the first (and only) question: [Y,N]? "
     read ANTWORTEN
     if [grep -iq '^y' <<< "$ANTWORTEN"]; then
+      INSTDIR=${HIINSTDIR}
       USRDIR="${HIUSR}"
       USRBIN="${HIUSRBIN}"
       ETC="${HIETC}"
@@ -54,7 +55,6 @@ fn_Checkroot(){
       exit 130
     fi
   else
-    LOINSTDIR='/var/otto/installed/pkg'
     INSTDIR=${LOINSTDIR}
     USRDIR="${LOUSR}"
     USRBIN="${LOUSRBIN}"
@@ -372,4 +372,5 @@ while getopts "${OPTPARAMS}" OPT; do
   esac
 done
 }
+
 fn_main ${@}
