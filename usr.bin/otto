@@ -8,42 +8,32 @@
 # Copyright (c) MMXX, Luiz Antônio Rangel et Projeto Pindorama;
 # Read LICENSE.txt @ master branch root (GitHub) for the complete license.
 
-############## Include Files ##############
+# Include Files
 . /etc/make.cfg
 . /usr/lib/otto/colors.shi
 . /usr/lib/otto/blink.shi
 . /usr/lib/otto/txtwait.shi
 . /usr/lib/otto/posix-alt.shi
-##############     END       ##############
 
-############# Program Specifications ######
-# Program Name: Otto
-export ausgabe='0.7'
-export PKG_FORMT='.psl'
-export INDEXFILE='.otidx'
-export PKG_COMPSS='7z'
-export HOST_OS="`uname -s`"
-##############     END       ##############
+# Program Specifications
+binary_name="`basename ${0}`"
+ausgabe='0.8'
+PKG_FORMT='.psl'
+INDEXFILE='.otidx'
+PKG_COMPSS='7z'
+HOST_OS="`uname -s`"
+LANG='POSIX'
+LC_ALL="${LANG}"
+#ifdef
+[ -z "${DROP_SHELL}" ] && SHELL='ksh' || SHELL="${DROP_SHELL}"
+mirror_basename=${${MIRROR#*//}%%/*}
+export binary_name ausgabe PKG_FORMT INDEXFILE PKG_COMPSS HOST_OS LANG LC_ALL SHELL mirror_basename
 
-############# Export C locale #############
-export LANG='C'
-export LC_ALL="${LANG}"
-##############     END       ##############
-
-############# Export alias ##########
+# Export alias
 alias chdir='cd' # This shall be commented when /bin/sh already has a native "chdir" command/system call.
 alias editor="/usr/bin/env ${EDITOR}"
 alias sourcelocalpkginfo=". "${PKGDIR}"/"${TORRENT}"/pkginfo"
-##############     END       ##############
-
-############## Global Variables #
-[ -z "${DROP_SHELL}" ] && export SHELL='ksh' || export SHELL="${DROP_SHELL}"
-export mirror_basename=${${MIRROR#*//}%%/*}
-##############     END       ##############
-
-# Subshells
 alias getPKG_FILENAME="printf '%s' "${NAME}" | tr ' ' '.'"
-# END
 
 # Script Functions
 
@@ -51,23 +41,27 @@ alias getPKG_FILENAME="printf '%s' "${NAME}" | tr ' ' '.'"
 Checkroot(){
   if [ "`whoami`" != 'root' ] && [ "`whoami`" != 'toor' ]; then
     printf '%b' "${YELLOW}WARNING$END: It looks like you are not logged into toor nor root user...\nWould you like to install the program on the highest userland layer (${HIUSR}) instead of installing directly on the root of the system?\n${YELLOW}WARNING$END: Some packages ${BOLD}cannot$END be installed on the highest userland layer under any circunstances.\nRegarding the first (and only) question: [Y,N]? "
-    read -r ANTWORTEN
-    if grep -iq '^y' <<< "$ANTWORTEN"; then
-      export USRDIR="${HIUSR}"
-      export USRBIN="${HIUSRBIN}"
-      export ETC="${HIETC}"
-      export SRCDIR="${HISRCDIR}"
-      export DIRISTATE=2
+    read ANTWORTEN
+    if [grep -iq '^y' <<< "$ANTWORTEN"]; then
+      USRDIR="${HIUSR}"
+      USRBIN="${HIUSRBIN}"
+      ETC="${HIETC}"
+      SRCDIR="${HISRCDIR}"
+      DIRISTATE=2
+      export USRDIR USRBIN ETC SRCDIR DIRISTATE
     else
       printf '%s\n' "${RED}ERROR$END: The current user denied local installation. Exit code is 130."
       exit 130
     fi
   else
-    export USRDIR="${LOUSR}"
-    export USRBIN="${LOUSRBIN}"
-    export ETC="${LOETC}"
-    export SRCDIR="${LOSRCDIR}"
-    export DIRISTATE='1'
+    LOINSTDIR='/var/otto/installed/pkg'
+    INSTDIR=${LOINSTDIR}
+    USRDIR="${LOUSR}"
+    USRBIN="${LOUSRBIN}"
+    ETC="${LOETC}"
+    SRCDIR="${LOSRCDIR}"
+    DIRISTATE='1'
+    export USRDIR USRBIN ETC SRCDIR DIRISTATE
   fi
 }
 
@@ -87,7 +81,7 @@ CheckNetwork(){
 
 CheckParameters(){
   if [ -z "${OPTARG}" ]; then
-    printf '%s\n' "${RED}ERROR$END: Insufficient parameters."
+    printf '%s\n' "${RED}ERROR$END: Insufficient parameters. Exit code is 1."
     exit 1
   fi
 }
@@ -181,14 +175,14 @@ Build(){
 }
 
 GenerateLocalpkgmap(){
-cat > /var/otto/installed/pkg/OTTO"${PKG}"/pkgmap <<EOD
+cat > `printf '%s' "${INSTDIR}"`/OTTO"${PKG}"/pkgmap <<EOD
 `cat "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkgmap`
 EOD
   return 0
 } # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
 
 GenerateLocalpkginfo(){
-cat > /var/otto/installed/pkg/OTTO"${PKG}"/pkginfo <<EOD
+cat > "${INSTDIR}"/OTTO"${PKG}"/pkginfo <<EOD
 `cat "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkginfo`
 printf '%s\n' "INSTDATE='`/usr/bin/date '+%b %e %Y %H:%M:%S'`'"
 EOD
@@ -197,7 +191,8 @@ EOD
 
 InstallPackage(){
   printf "Packages to install: ${#@}\n" 
-  for PKGNM in "${@}"; do
+  for (( i = 0; i < "${#@}"; i++))
+  {
     CheckRawPackage
     Uncompress
     sourcepkginfo # Source package extracted pkginfo (i know, it's messy but it works in theory)
@@ -205,22 +200,24 @@ InstallPackage(){
     CheckDependencies
     CheckDisk
     Build
-    mkdir /var/otto/installed/pkg/OTTO"${PKG}"
+    mkdir ${INSTDIR}/OTTO"${PKG}"
     GenerateLocalpkgmap
     GenerateLocalpkginfo
     printf '%s\n' "${PKGNM}-${VERSION}" >> ${CONTENTS}
-  done
+  }
   return 0
 }
 
 RemovePackage(){
-  for PKGNM in "${@}"; do 
+  for (( i=0; i < "${#@}"; i++ ))
+  { 
+    PKGNM=${@[${I}]}
     printf '%s' "Removing ${CATEGORY}/${PKG}"
     txtwait &
     < /var/otto/installed/pkg/OTTO"$PKG"/pkgmap /usr/bin/xargs rm -rfv  # Wait, do this work? Really awesome to see that i didn't need that cat.
     /bin/rm -rfv /var/otto/installed/pkg/OTTO"${PKG}"
     /bin/sed -i "/${PKGNM}/d" ${CONTENTS}
-  done
+  }
   return 0
 }
 
@@ -350,21 +347,18 @@ For more information about what each one of these flags mean, type 'man otto' in
   exit 0
 }
 
-#find(){
+fn_FindPackage(){
 
-#}
-# END
+}
 
-
-
-# CASE AND GETOPT
+fn_main(){
 OPTPARAMS="NHiIlfvrd:b:u:m:S" 
 while getopts "${OPTPARAMS}" OPT; do
   case "${OPT}" in
     "H") Help ;;
     "i") PackageInfo ;;
     "I") ProgramInfo ;;
-    "f") find ;;
+    "f") fn_FindPackage ;;
     "v") export VERBOSE=1 ;;
     "r") export RAW_PKG=1 ;;
     "d") Checkroot && InstallPackage "${OPTARG}" ;;
@@ -377,4 +371,5 @@ while getopts "${OPTPARAMS}" OPT; do
     "?") Help ;;
   esac
 done
-# END
+}
+fn_main ${@}
