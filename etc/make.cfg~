@@ -1,19 +1,19 @@
 # Directories
 PKGDIR='/var/otto/pkg'
-#HIUSR='~/.local'
+HIUSR='~/.local'
 LOUSR='/usr'
 BIN='/bin'
 ETC='/etc'
-#HIUSRBIN="${HIUSR}${BIN}"
+HIUSRBIN="${HIUSR}${BIN}"
 LOUSRBIN="${LOUSR}${BIN}"
-#HIETC="${HIUSR}${ETC}"
+HIETC="${HIUSR}${ETC}"
 LOETC="${ETC}"
-#HISRCDIR="${HIUSR}/src"
+HISRCDIR="${HIUSR}/src"
 LOSRCDIR='/var/otto/src'
 LOINSTDIR='/var/otto/installed/pkg'
-#HIINSTDIR="${HIUSR}/otto/installed/pkg"
+HIINSTDIR="${HIUSR}/otto/installed/pkg"
 LOCONTENTS='/var/otto/installed/contents'
-#HICONTENTS="${HIUSR}/otto/installed/contents"
+HICONTENTS="${HIUSR}/otto/installed/contents"
 
 # Options
 MIRROR='http://pindorama.tk/downloads/otto/packages'

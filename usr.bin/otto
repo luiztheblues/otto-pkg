@@ -16,130 +16,112 @@
 . /usr/lib/otto/posix-alt.shi
 
 # Program Specifications
-binary_name="`basename ${0}`"
-ausgabe='0.8'
-PKG_FORMT='.psl'
-INDEXFILE='.otidx'
-PKG_COMPSS='7z'
-HOST_OS="`uname -s`"
-LANG='POSIX'
-LC_ALL="${LANG}"
+binary_name="`basename ${0}`";
+ausgabe='0.8';
+PKG_FORMT='.psl';
+INDEXFILE='.otidx';
+PKG_COMPSS='7z';
+HOST_OS="`uname -s`";
+LANG='POSIX';
+LC_ALL="${LANG}";
+INSTDIR=${LOINSTDIR};
+USRDIR="${LOUSR}";
+USRBIN="${LOUSRBIN}";
+ETC="${LOETC}";
+SRCDIR="${LOSRCDIR}";
 #ifdef
-[ -z "${DROP_SHELL}" ] && SHELL='ksh' || SHELL="${DROP_SHELL}"
-mirror_basename=${${MIRROR#*//}%%/*}
-export binary_name ausgabe PKG_FORMT INDEXFILE PKG_COMPSS HOST_OS LANG LC_ALL SHELL mirror_basename
+[ -z "${DROP_SHELL}" ] && SHELL='ksh' || SHELL="${DROP_SHELL}";
+mirror_basename=${${MIRROR#*//}%%/*};
+export binary_name ausgabe PKG_FORMT INDEXFILE PKG_COMPSS HOST_OS LANG LC_ALL USRDIR USRBIN ETC SRCDIR DIRISTATE SHELL mirror_basename
 
 # Export alias
-alias chdir='cd' # This shall be commented when /bin/sh already has a native "chdir" command/system call.
-alias editor="/usr/bin/env ${EDITOR}"
-alias sourcelocalpkginfo=". "${PKGDIR}"/"${TORRENT}"/pkginfo"
-alias getPKG_FILENAME="printf '%s' "${NAME}" | tr ' ' '.'"
+alias chdir='cd'; # This shall be commented when /bin/sh already has a native "chdir" command/system call.
+alias editor="/usr/bin/env ${EDITOR}";
+alias sourcelocalpkginfo=". "${PKGDIR}"/"${TORRENT}"/pkginfo";
+alias getPKG_FILENAME="printf '%s' "${NAME}" | tr ' ' '.'";
 
 # Script Functions
 
 # ARE YA CHECKING SON?
-fn_Checkroot(){
-  if [ "`whoami`" != 'root' ] && [ "`whoami`" != 'toor' ]; then
-    printf '%b' "${YELLOW}WARNING$END: It looks like you are not logged into toor nor root user...\nWould you like to install the program on the highest userland layer (${HIUSR}) instead of installing directly on the root of the system?\n${YELLOW}WARNING$END: Some packages ${BOLD}cannot$END be installed on the highest userland layer under any circunstances.\nRegarding the first (and only) question: [Y,N]? "
-    read ANTWORTEN
-    if [grep -iq '^y' <<< "$ANTWORTEN"]; then
-      INSTDIR=${HIINSTDIR}
-      USRDIR="${HIUSR}"
-      USRBIN="${HIUSRBIN}"
-      ETC="${HIETC}"
-      SRCDIR="${HISRCDIR}"
-      DIRISTATE=2
-      export USRDIR USRBIN ETC SRCDIR DIRISTATE
-    else
-      printf '%s\n' "${RED}ERROR$END: The current user denied local installation. Exit code is 130."
-      exit 130
-    fi
-  else
-    INSTDIR=${LOINSTDIR}
-    USRDIR="${LOUSR}"
-    USRBIN="${LOUSRBIN}"
-    ETC="${LOETC}"
-    SRCDIR="${LOSRCDIR}"
-    DIRISTATE='1'
-    export USRDIR USRBIN ETC SRCDIR DIRISTATE
-  fi
-}
 
 fn_CheckNetwork(){
   # ${MIRROR} is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
-  printf '%s' 'Checking network connection'
-  txtwait
+  printf '%s' 'Checking network connection';
+  txtwait &
   if [ `printf "GET ${mirror_basename} HTTP/1.0\n\n" | netcat "${mirror_basename}" 80 > /dev/null 2>&1` ]; then
-    printf '%b\n' "[ ${GREEN}O.K.$END ]"
-    return 0
+    printf '%b\n' "[ ${GREEN}O.K.$END ]";
+    return 0;
   else
-    printf '%b\n' "[ ${RED}FAILED$END ]"
-    printf '%b\n' "${RED}ERROR$END: Network is unreachable or server is down. Exit code is 11."
-    exit 11
+    printf '%b\n' "[ ${RED}FAILED$END ]";
+    printf '%b\n' "${RED}ERROR$END: Network is unreachable or server is down. Exit code is 11.";
+    exit 11;
   fi
 }
 
 fn_CheckParameters(){
   if [ -z "${OPTARG}" ]; then
-    printf '%s\n' "${RED}ERROR$END: Insufficient parameters. Exit code is 1."
-    exit 1
+    printf '%s\n' "${RED}ERROR$END: Insufficient parameters. Exit code is 1.";
+    exit 1;
   fi
 }
 
 fn_CheckDisk(){
-  BENUTZT=`df -m / | tail -1 | grep '[0-9]' | awk '{print $3}'`
-  DSKVERF=`df -m / | tail -1 | grep '[0-9]' | awk '{print $4}'`
-  DSKGROSSE=$[${BENUTZT} + ${DSKVERF}]
-  PKGGROSSE_FILE=`du -sk "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/src.tar | awk '{print $1}'`
-  PKGGROSSE_CALC=`bc <<< "scale=3; ${PKGGROSSE_FILE}/1000"`
+  BENUTZT=`df -m / | tail -1 | grep '[0-9]' | awk '{print $3}'`;
+  DSKVERF=`df -m / | tail -1 | grep '[0-9]' | awk '{print $4}'`;
+  DSKGROSSE=$[${BENUTZT} + ${DSKVERF}];
+  PKGGROSSE_FILE=`du -sk "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/src.tar | awk '{print $1}'`;
+  PKGGROSSE_CALC=`bc <<< "scale=3; ${PKGGROSSE_FILE}/1000"`;
   printf '%s' "\
 Estimated total disk space: ${DSKGROSSE}MB
 Estimated used space: ${DSKVERF}MB
 Estimated space available: ${BENUTZT}MB
 Estimated space to be consumed (build files): ${PKGGROSSE_CALC}MB
 Estimated free space: `bc <<< "scale=3; ${DSKVERF} - ${PKGGROSSE_CALC}"`MB
-"
-  return 0
+";
+  return 0;
 }
 
 fn_CheckRawPackage(){
   if [ "${RAW_PKG}" = '1' ]; then 
     # For uncompress
-    PKGNM="${I}" # I've called it "I" because i couldn't think of a name, sorry.
-    BASENAME=`basename ${I}`
-    PKG_FILENAME=${I%%$PKG_FORMT}
-    alias extractpkg="/usr/bin/7z x ${I} -o${SRCDIR}/uncompressed-${PKG_FILENAME}"
-    EXTR_MSG="Extracting ${BASENAME}"
+    PKGNM="${I}";
+    BASENAME=`basename ${I}`;
+    PKG_FILENAME=${I%%$PKG_FORMT};
+    alias extractpkg="/usr/bin/7z x ${I} -o${SRCDIR}/uncompressed-${PKG_FILENAME}";
+    EXTR_MSG="Extracting ${BASENAME}";
     # Source pkginfo
-    alias sourcepkginfo=". ${SRCDIR}/uncompressed-${PKG_FILENAME}/pkginfo"
+    alias sourcepkginfo=". ${SRCDIR}/uncompressed-${PKG_FILENAME}/pkginfo";
   else 
     # Run the DownloadPackage() function
-    DownloadPackage
-    PKG_FILENAME=`getPKG_FILENAME`
+    DownloadPackage;
+    PKG_FILENAME=`getPKG_FILENAME`;
     # Source pkginfo
-    alias sourcepkginfo=". ${SRCDIR}/uncompressed-${PKG_FILENAME}/pkginfo"
+    alias sourcepkginfo=". ${SRCDIR}/uncompressed-${PKG_FILENAME}/pkginfo";
     # For uncompress
-    alias extractpkg="/usr/bin/7z x ${SRCDIR}/${PKG_FILENAME}${PKG_FORMT} -o${SRCDIR}/uncompressed-${PKG_FILENAME} -bb1" # For uncompressing downloaded packages, local pkginfo needs to be sourcered first.
-    EXTR_MSG="Extracting ${PKG_FILENAME}${PKG_FORMT}"
+    alias extractpkg="/usr/bin/7z x ${SRCDIR}/${PKG_FILENAME}${PKG_FORMT} -o${SRCDIR}/uncompressed-${PKG_FILENAME} -bb1"; # For uncompressing downloaded packages, local pkginfo needs to be sourcered first.
+    EXTR_MSG="Extracting ${PKG_FILENAME}${PKG_FORMT}";
   fi
 }
 
 fn_CheckDependencies(){
   # I hope this don't become a non-intentional fork bomb, like recursive GNU auto*hell scripts.
-  set -a dependency_array
-  dependencies_index="${SRCDIR}/uncompressed-${PKG_FILENAME}/install/depend"
+  set -a dependency_array;
+  dependencies_index="${SRCDIR}/uncompressed-${PKG_FILENAME}/install/depend";
   POINT=0
-  # Thanks Benjie from StackOverflow for this beautiful sed command line that i've slightly changed to remove comments.
-  for DEP in "`sed -e '/#/d' -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g' "${dependencies_index}"`"; do
-    if [ "`grep -Fxq "${DEP}" "${CONTENTS}"`" ]; then
+  for DEP in "`exec /usr/lib/otto/parsedeps.sed ${dependencies_index}`"; do
+    if [ "`grep -Fx "${DEP}" "${CONTENTS}" &> /dev/null`" ]; then
       printf '%s\n' "${DEP} is O.K."
     else
       dependency_array[${POINT}]=${DEP}
-      POINT=$(( $POINT + 1 )) 
+      POINT=$(( $POINT + 1 ))
     fi
   done
-  [ -z "${dependency_array[@]}" ] && { printf '%b\n' "${YELLOW}WARNING$END: ${DEP} isn't installed. Installing it now." ; fn_InstallPackage ${dependency_array[@]}} || printf '%s\n' 'No dependencies to install, we'\''re good to go.'
-  unset POINT dependency_array
+    if [ -z "${dependency_array[@]}" ]; then
+      printf '%b\n' "${YELLOW}WARNING$END: Installing remaining dependencies now." ; fn_InstallPackage "${dependency_array[@]}"
+    else
+      printf '%b\n' "${YELLOW}WARNING$END: No extra dependencies to install."
+    fi
+    unset POINT dependency_array
   return 0
 }
 
@@ -160,17 +142,17 @@ fn_DownloadPackage(){
 }
 
 fn_Uncompress(){
-  printf '%s' "${EXTR_MSG}"
+  printf '%s' "${EXTR_MSG}";
   txtwait &
-  extractpkg
-  tar -vxf "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/src.tar && rm -v "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/src.tar
+  extractpkg;
+  tar -vxf "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/src.tar;
+  rm -v "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/src.tar;
   return 0
 }
 
 fn_Build(){
-  # Scripts for building the package shall be minimal and pure POSIX
-  /bin/sh "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/install/checkinstall
-  /bin/sh "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/install/makebuild
+  exec "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/install/checkinstall;
+  exec "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/install/makebuild;
   return 0
 }
 
@@ -190,27 +172,25 @@ EOD
 }
 
 fn_InstallPackage(){
-  printf "Packages to install: ${#@}\n" 
-  for (( i = 0; i < "${#@}"; i++))
-  {
-    fn_CheckRawPackage
-    fn_Uncompress
-    sourcepkginfo # Source package extracted pkginfo (i know, it's messy but it works in theory)
-    export PKGNM="${CATEGORY}/${PKG}"
-    fn_CheckDependencies
-    fn_CheckDisk
-    fn_Build
-    mkdir ${INSTDIR}/OTTO"${PKG}"
-    fn_GenerateLocalpkgmap
-    fn_GenerateLocalpkginfo
-    printf '%s\n' "${PKGNM}-${VERSION}" >> ${CONTENTS}
+  printf "Packages to install: ${#@}\n"; 
+  for (( i = 0; i < "${#@}"; i++)){
+    fn_CheckRawPackage;
+    fn_Uncompress;
+    sourcepkginfo; # Source package extracted pkginfo (i know, it's messy but it works in theory)
+    export PKGNM="${CATEGORY}/${PKG}";
+    fn_CheckDependencies;
+    fn_CheckDisk;
+    fn_Build;
+    mkdir ${INSTDIR}/OTTO"${PKG}";
+    fn_GenerateLocalpkgmap;
+    fn_GenerateLocalpkginfo;
+    printf '%s\n' "${PKGNM}-${VERSION}" >> ${CONTENTS};
   }
   return 0
 }
 
 fn_RemovePackage(){
-  for (( i=0; i < "${#@}"; i++ ))
-  { 
+  for (( i=0; i < "${#@}"; i++ )){ 
     PKGNM=${@[${I}]}
     printf '%s' "Removing ${CATEGORY}/${PKG}"
     txtwait &
@@ -222,9 +202,9 @@ fn_RemovePackage(){
 }
 
 fn_Sync(){
-  printf '%s\n' "Refreshing packages metadata \(${mirror_basename}\)..."
-  curl -s "${mirror_basename}"/SERVERINFO.txt "${mirror_basename}"/SERVERRULES.txt
-  { chdir "${SRCDIR}" && { curl -O -# "${MIRROR}"/lastest_meta"${INDEXFILE}" ; chdir "${PKGDIR}" && 7z x ${SRCDIR}/lastest_meta"${INDEXFILE}" -o"${PKGDIR}" -bb1} }
+  printf '%s\n' "Refreshing packages metadata \(${mirror_basename}\)..." ;
+  curl -s "${mirror_basename}"/SERVERINFO.txt "${mirror_basename}"/SERVERRULES.txt ;
+  { chdir "${SRCDIR}" && { curl -O -# "${MIRROR}"/lastest_meta"${INDEXFILE}" ; chdir "${PKGDIR}" && 7z x ${SRCDIR}/lastest_meta"${INDEXFILE}" -o"${PKGDIR}" -bb1} } ;
   printf '%s\n' "Package index updated \(`date '+%Y.%m.%d @ %H:%M:%S'`\)."
 }
 
@@ -233,7 +213,8 @@ fn_Update(){
   local index_package_version="`printf '%s'  "${VERSION}" | tr -d '.'`"
   local installed_package_version="`grep -oP ${PKGNM}'-[0-9]+\.[0-9]+' ${CONTENTS} | tr -d '.' | tr -dc '0-9'`"
   fn_Sync
-  for PKGNM in "${@}"; do
+  for (( i-0; i < "${#@}"; i++ )){
+    PKGNM=${@[${I}]}
     printf '%s\n' "Checking updates for ${PKGNM}."
     if [ "${index_package_version}" \> "${installed_package_version}" ]; then
       printf '%s' "Updating ${PKGNM} \(${installed_package_version} -> ${index_package_version}\)"
@@ -253,7 +234,7 @@ fn_Update(){
     else
       printf '%s\n' "${PKGNM} is up to date."
     fi
-  done
+  }
   return 0
 }
 
@@ -283,16 +264,13 @@ BASEDIR='/'
 DIRSTATES='1 2'
 EOD
   > ${makepkg_dir}/pkgmap
-  # Where are we dropping, boys?
-  printf '%s\n' "Time to move the final package files (binaries, scripts etc, not the source code) to the fakeroot (${DESTDIR}), it will be the base to pkgmap(4).\nWhen you'\''re done, just exit the drop-shell session."
-  printf '%s\n' "Dropping to an UNIX Shell (${SHELL})"
+  printf '%s\n' "Time to move the final package files to the fakeroot (${DESTDIR}), it will be the base to pkgmap(5).\nWhen you'\''re done, just exit the drop-shell session."
+  printf '%s\n' "Dropping to ${SHELL}"
   /bin/sh -c "cd ${makepkg_dir} ; /usr/bin/env ${SHELL}"
-  # Edit pkginfo
   editor "${makepkg_dir}"/pkginfo
-  # Map it with fd(1)
-  fd . ${DESTDIR} > "${makepkg_dir}"/pkgmap
+  find . ${DESTDIR} > "${makepkg_dir}"/pkgmap
   # Change directories to variables in pkgmap (after mapping the compiled package with fd(1))
-  sed -e 's/\/usr/${USRDIR}/g' -e 's/\/bin/${BINDIR}/g' -e 's/\/etc/${ETC}/g' "${makepkg_dir}"/pkgmap > /tmp/pkgmap_"${1}" && mv /tmp/pkgmap_"${1}" "${makepkg_dir}"/pkgmap
+  exec /usr/lib/otto/parsepkgmap.sed "${makepkg_dir}"/pkgmap > /tmp/pkgmap_"${1}" && mv /tmp/pkgmap_"${1}" "${makepkg_dir}"/pkgmap
   exit 0
 }
 
@@ -361,8 +339,8 @@ while getopts "${OPTPARAMS}" OPT; do
     "f") fn_FindPackage ;;
     "v") export VERBOSE=1 ;;
     "r") export RAW_PKG=1 ;;
-    "d") fn_Checkroot && fn_InstallPackage "${OPTARG}" ;;
-    "b") fn_CheckParameters "${OPTARG}" && fn_Checkroot && fn_RemovePackage "${OPTARG}" ;;
+    "d") fn_CheckParameters "${OPTARG}" && fn_InstallPackage "${OPTARG}" ;;
+    "b") fn_CheckParameters "${OPTARG}" && fn_RemovePackage "${OPTARG}" ;;
     "S") fn_Checkroot && fn_Sync ;;
     "u") fn_Checkroot && fn_Update "${OPTARG}" ;;
     "m") fn_MakePackage "${OPTARG}" ;;

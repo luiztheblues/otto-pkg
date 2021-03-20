@@ -7,4 +7,5 @@ Sávio (SavioHamrick).
 
 # Forked code (on libaries):
 Jefferson Rocha (slackjeff);
-Dylan Araps (dylanaraps).
+Dylan Araps (dylanaraps);
+Benjie (from StackOverflow, at https://stackoverflow.com/a/1252191).
