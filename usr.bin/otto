@@ -2,7 +2,7 @@
 # Ok, i will remember to patch it later.
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
-# Otto-PKG - Ein Paketmanager, der Pakete über BitTorrent (und nun HTTP) herunterlädt.
+# Otto-PKG - Ein Ports-ähnlicher Paketmanager.
 
 # Caldera License (a.k.a 4-Clause BSD).
 # Copyright (c) MMXX, Luiz Antônio Rangel et Projeto Pindorama;
@@ -18,7 +18,7 @@
 # Program Specifications
 binary_name="`basename ${0}`";
 ausgabe='0.8';
-PKG_FORMT='.psl';
+PKG_FORMT='.pkg';
 INDEXFILE='.otidx';
 PKG_COMPSS='7z';
 HOST_OS="`uname -s`";
@@ -36,11 +36,6 @@ export binary_name ausgabe PKG_FORMT INDEXFILE PKG_COMPSS HOST_OS LANG LC_ALL US
 
 # Export alias
 alias chdir='cd'; # This shall be commented when /bin/sh already has a native "chdir" command/system call.
-alias editor="/usr/bin/env ${EDITOR}";
-alias sourcelocalpkginfo=". "${PKGDIR}"/"${TORRENT}"/pkginfo";
-alias getPKG_FILENAME="printf '%s' "${NAME}" | tr ' ' '.'";
-
-# Script Functions
 
 # ARE YA CHECKING SON?
 
@@ -69,7 +64,7 @@ fn_CheckDisk(){
   BENUTZT=`df -m / | tail -1 | grep '[0-9]' | awk '{print $3}'`;
   DSKVERF=`df -m / | tail -1 | grep '[0-9]' | awk '{print $4}'`;
   DSKGROSSE=$[${BENUTZT} + ${DSKVERF}];
-  PKGGROSSE_FILE=`du -sk "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/src.tar | awk '{print $1}'`;
+  PKGGROSSE_FILE=`du -sk <pacote> | awk '{print $1}'`; # Tenho que botar o pacote .txz depois aqui.
   PKGGROSSE_CALC=`bc <<< "scale=3; ${PKGGROSSE_FILE}/1000"`;
   printf '%s' "\
 Estimated total disk space: ${DSKGROSSE}MB
@@ -79,28 +74,6 @@ Estimated space to be consumed (build files): ${PKGGROSSE_CALC}MB
 Estimated free space: `bc <<< "scale=3; ${DSKVERF} - ${PKGGROSSE_CALC}"`MB
 ";
   return 0;
-}
-
-fn_CheckRawPackage(){
-  if [ "${RAW_PKG}" = '1' ]; then 
-    # For uncompress
-    PKGNM="${I}";
-    BASENAME=`basename ${I}`;
-    PKG_FILENAME=${I%%$PKG_FORMT};
-    alias extractpkg="/usr/bin/7z x ${I} -o${SRCDIR}/uncompressed-${PKG_FILENAME}";
-    EXTR_MSG="Extracting ${BASENAME}";
-    # Source pkginfo
-    alias sourcepkginfo=". ${SRCDIR}/uncompressed-${PKG_FILENAME}/pkginfo";
-  else 
-    # Run the DownloadPackage() function
-    DownloadPackage;
-    PKG_FILENAME=`getPKG_FILENAME`;
-    # Source pkginfo
-    alias sourcepkginfo=". ${SRCDIR}/uncompressed-${PKG_FILENAME}/pkginfo";
-    # For uncompress
-    alias extractpkg="/usr/bin/7z x ${SRCDIR}/${PKG_FILENAME}${PKG_FORMT} -o${SRCDIR}/uncompressed-${PKG_FILENAME} -bb1"; # For uncompressing downloaded packages, local pkginfo needs to be sourcered first.
-    EXTR_MSG="Extracting ${PKG_FILENAME}${PKG_FORMT}";
-  fi
 }
 
 fn_CheckDependencies(){
@@ -208,70 +181,8 @@ fn_Sync(){
   printf '%s\n' "Package index updated \(`date '+%Y.%m.%d @ %H:%M:%S'`\)."
 }
 
-fn_Update(){ 
-  local index_package_source="`. ${PKGDIR}/${PKGNM}/pkginfo`"
-  local index_package_version="`printf '%s'  "${VERSION}" | tr -d '.'`"
-  local installed_package_version="`grep -oP ${PKGNM}'-[0-9]+\.[0-9]+' ${CONTENTS} | tr -d '.' | tr -dc '0-9'`"
-  fn_Sync
-  for (( i-0; i < "${#@}"; i++ )){
-    PKGNM=${@[${I}]}
-    printf '%s\n' "Checking updates for ${PKGNM}."
-    if [ "${index_package_version}" \> "${installed_package_version}" ]; then
-      printf '%s' "Updating ${PKGNM} \(${installed_package_version} -> ${index_package_version}\)"
-      txtwait
-      sed -i "/${PKGNM}-${installed_package_version}/d" "${CONTENTS}"
-      rm -rf /var/otto/installed/pkg/OTTO"${PKG}"
-      fn_InstallPackage "${PKGNM}"
-      printf '%s\n' "fn_Updated ${PKGNM} succesfully."
-    elif [ "${index_package_version}" \< "${installed_package_version}" ]; then
-      echo "${YELLOW}WARNING$END: ${PKGNM}'s index files are from an older version than installed one, downgrading."
-      printf '%s' "Downgrading ${PKGNM} \(${installed_package_version} -> ${index_package_version}\)"
-      txtwait
-      sed -i "/${PKGNM}-${installed_package_version}/d" "${CONTENTS}"
-      rm -rf /var/otto/installed/pkg/OTTO"${PKG}"
-      fn_InstallPackage "${PKGNM}"
-      printf '%s\n' "Downgraded ${PKGNM}."
-    else
-      printf '%s\n' "${PKGNM} is up to date."
-    fi
-  }
-  return 0
-}
-
-fn_MakePackage(){
-  # This first implementation will be only for pure source code.
-  # I need to make it more "binary-packaging-friendly".
-  export makepkg_dir="${HOME}/packaging/${1}"
-  export DESTDIR="${makepkg_dir}/fakeroot"
-  printf '%s\n' "Creating package skeleton for ${1}."
-  mkdir -v "${makepkg_dir}"
-  mkdir -v "${makepkg_dir}"/install
-  mkdir -v "${makepkg_dir}"/src
-  mkdir -v "${makepkg_dir}"/tmpinst
-  mkdir -v "${DESTDIR}"
-  cat > ${makepkg_dir}/pkginfo <<EOD
-PKG="${1}"
-NAME="${1} X.Y.Z '<CPU> <ARCH>bit' Copacabana"
-VERSION='X.Y.Z'
-PSTAMP=`date '+%Y.%m.%d'`
-VENDOR=''
-EMAIL=''
-DESC=''
-ARCH=''
-CATEGORY=''
-CLASSES=''
-BASEDIR='/'
-DIRSTATES='1 2'
-EOD
-  > ${makepkg_dir}/pkgmap
-  printf '%s\n' "Time to move the final package files to the fakeroot (${DESTDIR}), it will be the base to pkgmap(5).\nWhen you'\''re done, just exit the drop-shell session."
-  printf '%s\n' "Dropping to ${SHELL}"
-  /bin/sh -c "cd ${makepkg_dir} ; /usr/bin/env ${SHELL}"
-  editor "${makepkg_dir}"/pkginfo
-  find . ${DESTDIR} > "${makepkg_dir}"/pkgmap
-  # Change directories to variables in pkgmap (after mapping the compiled package with fd(1))
-  exec /usr/lib/otto/parsepkgmap.sed "${makepkg_dir}"/pkgmap > /tmp/pkgmap_"${1}" && mv /tmp/pkgmap_"${1}" "${makepkg_dir}"/pkgmap
-  exit 0
+fn_Update(){
+  return 0 # TODO
 }
 
 fn_ListPackages(){
@@ -308,7 +219,7 @@ ${BOLD}Otto, eine Paketverwaltungs-Toolchain.$END
 Ausgabe: ${ausgabe}
 Paketformat: ${PKG_FORMT}
 Betriebssystem: ${HOST_OS}
-HTTP-Spiegel: ${mirror_basename}
+WEB-Spiegel: ${mirror_basename}
 
 Copyright (c) MMXX Luiz Antonio Rangel et Project Pindorama.
 See CONTRIBUTORS.txt file for more.
@@ -320,22 +231,21 @@ See CONTRIBUTORS.txt file for more.
 
 fn_Help(){
   printf "\
-[USAGE]: otto -[i|v|r|d|b|u] <category>/<package> | -dr <package filename>${PKG_FORMT} | -m <package name> | -[N|H|I|l|f|S|?]
+[USAGE]: otto -[i|v|r|d|b|u] <category>/<package> | package | -[N|H|I|l|f|S|?]
 For more information about what each one of these flags mean, type 'man otto' in your Shell."
   exit 0
 }
 
 fn_FindPackage(){
-
+  
 }
 
 fn_main(){
-OPTPARAMS="NHiIlfvrd:b:u:m:S" 
+OPTPARAMS="NHiIlfvrd:b:u:S" 
 while getopts "${OPTPARAMS}" OPT; do
   case "${OPT}" in
     "H") fn_Help ;;
     "i") fn_PackageInfo ;;
-    "I") fn_ProgramInfo ;;
     "f") fn_FindPackage ;;
     "v") export VERBOSE=1 ;;
     "r") export RAW_PKG=1 ;;
@@ -343,7 +253,6 @@ while getopts "${OPTPARAMS}" OPT; do
     "b") fn_CheckParameters "${OPTARG}" && fn_RemovePackage "${OPTARG}" ;;
     "S") fn_Checkroot && fn_Sync ;;
     "u") fn_Checkroot && fn_Update "${OPTARG}" ;;
-    "m") fn_MakePackage "${OPTARG}" ;;
     "l") fn_ListPackages ;;
     "N") fn_CheckNetwork ;;
     "?") fn_Help ;;
