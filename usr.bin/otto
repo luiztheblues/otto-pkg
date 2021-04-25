@@ -19,20 +19,12 @@
 binary_name="`basename ${0}`";
 ausgabe='0.8';
 PKG_FORMT='.pkg';
-INDEXFILE='.otidx';
 PKG_COMPSS='7z';
 HOST_OS="`uname -s`";
 LANG='POSIX';
 LC_ALL="${LANG}";
-INSTDIR=${LOINSTDIR};
-USRDIR="${LOUSR}";
-USRBIN="${LOUSRBIN}";
-ETC="${LOETC}";
-SRCDIR="${LOSRCDIR}";
-#ifdef
-[ -z "${DROP_SHELL}" ] && SHELL='ksh' || SHELL="${DROP_SHELL}";
 mirror_basename=${${MIRROR#*//}%%/*};
-export binary_name ausgabe PKG_FORMT INDEXFILE PKG_COMPSS HOST_OS LANG LC_ALL USRDIR USRBIN ETC SRCDIR DIRISTATE SHELL mirror_basename
+export binary_name ausgabe PKG_FORMT PKG_COMPSS HOST_OS LANG LC_ALL mirror_basename
 
 # Export alias
 alias chdir='cd'; # This shall be commented when /bin/sh already has a native "chdir" command/system call.
@@ -43,12 +35,11 @@ fn_CheckNetwork(){
   # ${MIRROR} is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
   printf '%s' 'Checking network connection';
   txtwait &
-  if [ `printf "GET ${mirror_basename} HTTP/1.0\n\n" | netcat "${mirror_basename}" 80 > /dev/null 2>&1` ]; then
-    printf '%b\n' "[ ${GREEN}O.K.$END ]";
+  if [ `printf '%s\n\n' "GET ${mirror_basename} HTTP/1.0" | netcat "${mirror_basename}" 80 > /dev/null 2>&1` ]; then
+    printOK 'Mirror is up and running.';
     return 0;
   else
-    printf '%b\n' "[ ${RED}FAILED$END ]";
-    printf '%b\n' "${RED}ERROR$END: Network is unreachable or server is down. Exit code is 11.";
+    printERR 'Network is unreachable or server is down. Exit code is 11.';
     exit 11;
   fi
 }
@@ -129,21 +120,6 @@ fn_Build(){
   return 0
 }
 
-fn_GenerateLocalpkgmap(){
-cat > `printf '%s' "${INSTDIR}"`/OTTO"${PKG}"/pkgmap <<EOD
-`cat "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkgmap`
-EOD
-  return 0
-} # This will load directory variables (ex: low /usr or high /usr?) for a specific install, in theory.
-
-fn_GenerateLocalpkginfo(){
-cat > "${INSTDIR}"/OTTO"${PKG}"/pkginfo <<EOD
-`cat "${SRCDIR}"/uncompressed-"${PKG_FILENAME}"/pkginfo`
-printf '%s\n' "INSTDATE='`/usr/bin/date '+%b %e %Y %H:%M:%S'`'"
-EOD
-  return 0
-}
-
 fn_InstallPackage(){
   printf "Packages to install: ${#@}\n"; 
   for (( i = 0; i < "${#@}"; i++)){
@@ -176,8 +152,18 @@ fn_RemovePackage(){
 
 fn_Sync(){
   printf '%s\n' "Refreshing packages metadata \(${mirror_basename}\)..." ;
-  curl -s "${mirror_basename}"/SERVERINFO.txt "${mirror_basename}"/SERVERRULES.txt ;
-  { chdir "${SRCDIR}" && { curl -O -# "${MIRROR}"/lastest_meta"${INDEXFILE}" ; chdir "${PKGDIR}" && 7z x ${SRCDIR}/lastest_meta"${INDEXFILE}" -o"${PKGDIR}" -bb1} } ;
+  if [ ${SYNC_TYPE} = HTTP ]; then
+    curl -s "${MIRROR}"/info.cgi
+  else
+    printWAR 'No server information provided.';
+  fi
+  if [ ${SYNC_TYPE} = 'HTTP' ]; then
+     curl -s 
+  elif [ ${SYNC_TYPE} = 'FTP' ];
+    
+  elif [ ${SYNC_TYPE} = 'GIT' ];
+
+  if
   printf '%s\n' "Package index updated \(`date '+%Y.%m.%d @ %H:%M:%S'`\)."
 }
 
@@ -191,7 +177,7 @@ fn_ListPackages(){
     lines "${CONTENTS}"
     exit 0
   else
-    printf "${RED}ERROR:$END package list not found! This isn't a good thing...\a\n"
+    printERR 'Package list not found. Exit code is 140.'
     exit 140
   fi
 }
