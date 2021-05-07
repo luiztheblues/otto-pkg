@@ -1,11 +1,11 @@
-# txtwait.shi: SysVInit-like loading animation libary for Shell Script.
-# Fork of txtampel.shi function by Luiz Antônio Rangel @ otto-pkg.
+# txtwait.shi: Loading animation libary for Shell Script.
+# Fork of txtampel.shi function by Luiz Antônio @ otto-pkg.
 # Actually, it's txtampel.shi with slight changes.
-# NOTICE: in the future, may i substitute this for a libary with a Sun SRV4-like animation (/-\|).
-
-txtwait(){
-  for DOT in `seq 1 35`; do
-    printf '%s' '.'
-    sleep 0.2s
-  done
+s=( '/' '-' '\' '|' )
+export PID=$!
+for ((;;)){ 
+  for (( i = 0; i < 3; i ++ )){
+    printf '\r%s' ${s[${i}]};
+    sleep 0.3;
+  }
 }
