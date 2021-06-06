@@ -1,15 +1,14 @@
 #!/usr/bin/env ksh 
-# Ok, i will remember to patch it later.
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
 # Otto-PKG - Ein Ports-ähnlicher Paketmanager.
 
 # Caldera License (a.k.a 4-Clause BSD).
-# Copyright (c) MMXX, Luiz Antônio Rangel et Projeto Pindorama;
+# Copyright (c) MMXX, Luiz Antônio Rangel, Caio Novais et Projeto Pindorama;
 # Read LICENSE.txt @ master branch root (GitHub) for the complete license.
 
 # Include Files
-. /etc/make.cfg
+. /usr/etc/make.cfg
 . /usr/lib/otto/colors.shi
 . /usr/lib/otto/blink.shi
 . /usr/lib/otto/txtwait.shi
@@ -26,7 +25,7 @@ mirror_basename=${${MIRROR#*//}%%/*}
 export binary_name ausgabe PKG_FORMT PKG_COMPSS HOST_OS LANG LC_ALL mirror_basename;
 
 # Export alias
-alias chdir='cd'; # This shall be commented when /bin/sh already has a native "chdir" command/system call.
+alias chdir='cd';
 
 # ARE YA CHECKING SON?
 
@@ -45,7 +44,7 @@ fn_CheckNetwork(){
 
 fn_CheckParameters(){
   if [ -z "${OPTARG}" ]; then
-    printf '%s\n' "${RED}ERROR$END: Insufficient parameters. Exit code is 1.";
+    printERR 'Insufficient parameters. Exit code is 1.';
     exit 1;
   fi
 }
@@ -69,26 +68,38 @@ Estimated free space: `bc <<< "scale=3; ${DSKVERF} - ${PKGGROSSE_CALC}"`MB
 fn_CheckDependencies(){
   # I hope this don't become a non-intentional fork bomb, like recursive GNU auto*hell scripts.
   set -a dependency_array;
-  dependencies_index=(${SRCDIR}/uncompressed-${PKG_FILENAME}/install/depend);
-  POINT=0;
-  for (( i = 0; i < ${#}; i++ )){
+  local dependencies_index=(${@});
+  local N_dependencies_index=`n ${dependencies_index[@]}`;
+  local POINT='0';
+  for (( i=0; i < ${N_dependencies_index}; i++ )){
     if [ "`grep -Fx "${DEP}" "${CONTENTS}" &> /dev/null`" ]; then
-      printf '%s\n' "${DEP} is O.K."
+      printOK "${DEP} is installed.";
     else
-      dependency_array[${POINT}]=${DEP}
-      POINT=$(( $POINT + 1 ))
+      dependency_array[${POINT}]=${DEP};
+      POINT=$(( $POINT + 1 ));
     fi
   }
-    if [ -z "${dependency_array[@]}" ]; then
-      printf '%b\n' "${YELLOW}WARNING$END: Installing remaining dependencies now." ; fn_InstallPackage "${dependency_array[@]}"
-    else
-      printf '%b\n' "${YELLOW}WARNING$END: No extra dependencies to install."
-    fi
-    unset POINT dependency_array
+  if [ -z "${dependency_array[@]}" ]; then
+    printWAR 'Installing remaining dependencies now.'; 
+    fn_InstallPackage "${dependency_array[@]}";
+  else
+    printOK 'No extra dependencies to install.';
+  fi
+  unset dependencies_index N_dependencies_index dependency_array POINT;
   return 0
 }
 
 # Sure i am, dad.
+
+fn_AutoClean(){
+  local TOCLEAN=(${TMPDIR} ${PKGDIR});
+  local N_TOCLEAN=`n ${TOCLEAN[@]}`;
+  for (( i=0; i < ${N_TOCLEAN}; i++ )){
+    printWAR "Cleaning ${TOCLEAN[${i}]}.";
+    find ${TOCLEAN[${i}]} -exec rm -rvf {} \;
+  }
+  return 0;
+}
 
 fn_DownloadPackage(){
   return 0
@@ -99,42 +110,40 @@ fn_Build(){
 }
 
 fn_InstallPackage(){
-  printf "Packages to install: ${#@}\n"; 
-  for (( i = 0; i < "${#@}"; i++)){
-    fn_CheckDependencies;
-    fn_CheckDisk;
-    fn_Build;
+  local N_STDIN=`n ${@}`
+  printf "Packages to install: ${N_STDIN}\n"; 
+  for (( i = 0; i < "${N_STDIN}"; i++)){
+    local PKGNM=${@[${i}]};
+    PKGBUILD_DIR=`find ${DBDIR} -name "${PKGNM}"`;
+    . ${PKGBUILD_DIR}/pkginfo
+    fn_CheckDependencies ${REQUIRES} &&
+    fn_CheckDisk &&
+    fn_Build &&
   }
-  return 0
+  return 0;
 }
 
 fn_RemovePackage(){
-  for (( i=0; i < "${#@}"; i++ )){ 
-    PKGNM=${@[${I}]}
-    /sbin/removepkg 
-  }
-  return 0
+  local N_STDIN=`n ${@}`
+  printf "Packages to remove: ${N_STDIN}\n"; 
+  /sbin/removepkg ${@}; 
+  return 0;
 }
 
 fn_Sync(){
   printf '%s\n' "Refreshing packages metadata \(${mirror_basename}\)..." ;
   if [ ${SYNC_TYPE} = HTTP ]; then
-    curl -s "${MIRROR}"/info.cgi 2> /dev/null
-  else
-    printWAR 'No server information provided.';
-  fi
-  if [ ${SYNC_TYPE} = 'HTTP' ]; then
-     curl -L# 
-  elif [ ${SYNC_TYPE} = 'FTP' ];
-    
+    curl -s "${MIRROR}"/info.cgi 2> /dev/null || printWAR 'No server information provided.';
+    curl -# "${MIRROR}"/copaports-${VERSION}.txz --output - | xz -cd - | tar -xvf - -C ${DBDIR};
   elif [ ${SYNC_TYPE} = 'GIT' ];
-     git clone -v "${MIRROR}" -b "${VERSION}" "${DBDIR}"  
-  if
-  printf '%s\n' "Package index updated \(`date '+%Y.%m.%d @ %H:%M:%S'`\)."
+     git clone -v "${MIRROR}" -b "${VERSION}" "${DBDIR}"; 
+  fi
+  printOK "Package index updated \(`date '+%Y.%m.%d @ %H:%M:%S'`\).";
+  return 0;
 }
 
 fn_Update(){
-  return 0 # TODO
+  return 0; # TODO
 }
 
 fn_ListPackages(){
@@ -150,7 +159,6 @@ fn_ListPackages(){
 
 fn_PackageInfo(){
   . /var/otto/installed/pkg/OTTO"${PKG}"/pkginfo
-  local FILES="`lines /var/otto/installed/pkg/OTTO"${PKG}"/pkgmap`"
   printf '%s' "
 PACKAGE: ${PKG}
 DESCRIPTION: ${DESC}  
@@ -173,8 +181,8 @@ Paketformat: ${PKG_FORMT}
 Betriebssystem: ${HOST_OS}
 WEB-Spiegel: ${mirror_basename}
 
-Copyright (c) MMXX Luiz Antonio Rangel et Project Pindorama.
-See CONTRIBUTORS.txt file for more.
+Copyright (c) MMXX Luiz Antonio Rangel, Caio Novais et Project Pindorama.
+See the CONTRIBUTORS file for more.
 
 ✠ GOTT MIT UNS ✠
 "
@@ -188,28 +196,28 @@ For more information about what each one of these flags mean, type 'man otto' in
   exit 0
 }
 
-fn_FindPackage(){
-  
+findpkg(){
+  find ${DBDIR} -name "${@}";
+  return 0;
 }
 
 fn_main(){
-OPTPARAMS="NHiIlfvrd:b:u:S" 
-while getopts "${OPTPARAMS}" OPT; do
-  case "${OPT}" in
-    "H") fn_Help ;;
-    "i") fn_PackageInfo ;;
-    "f") fn_FindPackage ;;
-    "v") export VERBOSE=1 ;;
-    "r") export RAW_PKG=1 ;;
-    "d") fn_CheckParameters "${OPTARG}" && fn_InstallPackage "${OPTARG}" ;;
-    "b") fn_CheckParameters "${OPTARG}" && fn_RemovePackage "${OPTARG}" ;;
-    "S") fn_Checkroot && fn_Sync ;;
-    "u") fn_Checkroot && fn_Update "${OPTARG}" ;;
-    "l") fn_ListPackages ;;
-    "N") fn_CheckNetwork ;;
-    "?") fn_Help ;;
-  esac
-done
+  OPTPARAMS="NHiIlfvd:b:u:S" 
+  while getopts "${OPTPARAMS}" OPT; do
+    case "${OPT}" in
+      "H") fn_Help ;;
+      "i") fn_PackageInfo ;;
+      "f") findpkg ;;
+      "v") export VERBOSE=1 ;;
+      "d") fn_CheckParameters "${OPTARG}" && fn_InstallPackage "${OPTARG}" ;;
+      "b") fn_CheckParameters "${OPTARG}" && fn_RemovePackage "${OPTARG}" ;;
+      "S") fn_Checkroot && fn_Sync ;;
+      "u") fn_Checkroot && fn_Update "${OPTARG}" ;;
+      "l") fn_ListPackages ;;
+      "N") fn_CheckNetwork ;;
+      "?") fn_Help ;;
+    esac
+  done
 }
 
 fn_main ${@}
