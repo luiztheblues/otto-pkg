@@ -52,8 +52,8 @@ fn_CheckParameters(){
 fn_CheckDisk(){
   BENUTZT=`df -m / | tail -1 | grep '[0-9]' | awk '{print $3}'`;
   DSKVERF=`df -m / | tail -1 | grep '[0-9]' | awk '{print $4}'`;
-  DSKGROSSE=$[${BENUTZT} + ${DSKVERF}];
-  PKGGROSSE_FILE=`du -sk <pacote> | awk '{print $1}'`; # Tenho que botar o pacote .psl depois aqui.
+  DSKGROSSE=$(( ${BENUTZT} + ${DSKVERF} ));
+  PKGGROSSE_FILE=`du -sk ${PKGDIR}/ | awk '{print $1}'`; # Tenho que botar o pacote .psl depois aqui.
   PKGGROSSE_CALC=`bc <<< "scale=3; ${PKGGROSSE_FILE}/1000"`;
   printf '%s' "\
 Estimated total disk space: ${DSKGROSSE}MB
@@ -96,7 +96,7 @@ fn_AutoClean(){
   local N_TOCLEAN=`n ${TOCLEAN[@]}`;
   for (( i=0; i < ${N_TOCLEAN}; i++ )){
     printWAR "Cleaning ${TOCLEAN[${i}]}.";
-    find ${TOCLEAN[${i}]} -exec rm -rvf {} \;
+    find ${TOCLEAN[${i}]} -not -path ${TOCLEAN[${i}]} -exec rm -rvf {} \;
   }
   return 0;
 }
@@ -117,8 +117,8 @@ fn_InstallPackage(){
     PKGBUILD_DIR=`find ${DBDIR} -name "${PKGNM}"`;
     . ${PKGBUILD_DIR}/pkginfo
     fn_CheckDependencies ${REQUIRES} &&
-    fn_CheckDisk &&
     fn_Build &&
+    fn_CheckDisk &&
   }
   return 0;
 }
@@ -143,12 +143,12 @@ fn_Sync(){
 }
 
 fn_Update(){
-  return 0; # TODO
+  return 0;
 }
 
 fn_ListPackages(){
   if [ -f "${CONTENTS}" ]; then
-    pcat "${CONTENTS}"
+    more "${CONTENTS}"
     lines "${CONTENTS}"
     exit 0
   else
@@ -158,7 +158,10 @@ fn_ListPackages(){
 }
 
 fn_PackageInfo(){
-  . /var/otto/installed/pkg/OTTO"${PKG}"/pkginfo
+  PKGNM=${@};
+  . /var/otto/installed/pkg/OTTO"${PKG}"/pkginfo;
+  PKGCONTENT=`grep "${PKGNM}*" ${CONTENTS} | sed '1,/FILE LIST:/ d'`;
+  FILES="`lines ${PKGCONTENT}`";
   printf '%s' "
 PACKAGE: ${PKG}
 DESCRIPTION: ${DESC}  
