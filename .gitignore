@@ -1,3 +1,7 @@
 # Exclude package templates
 pkg_templates/
 tests_n_pipelines
+
+# Exclude Vim trash
+.*.un~
+*~
