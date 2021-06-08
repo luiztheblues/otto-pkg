@@ -130,8 +130,8 @@ fn_DownloadPackage(){
 }
 
 fn_InstallPackage(){
-  local n_AT=`n ${@}`
-  printf "Packages to install: ${N_STDIN}\n"; 
+  local n_AT=`n ${@}`;
+  printf '%s\n' "Packages to install: ${n_AT}"; 
   for (( i=0; i < "${n_AT}"; i++)){
     local PKGNM=${@[${i}]};
     PKGBUILD_DIR=`find ${DBDIR} -name "${PKGNM}"`;
@@ -147,14 +147,14 @@ fn_InstallPackage(){
 }
 
 fn_RemovePackage(){
-  local N_STDIN=`n ${@}`
-  printf "Packages to remove: ${N_STDIN}\n"; 
+  local n_AT=`n ${@}`;
+  printf "Packages to remove: ${n_AT}\n";
   /sbin/removepkg ${@}; 
   return 0;
 }
 
 fn_Sync(){
-  printf '%s\n' "Refreshing packages metadata \(${mirror_basename}\)..." ;
+  printWAR "Refreshing packages metadata \(${mirror_basename}\)..." ;
   if [ ${SYNC_TYPE} = HTTP ]; then
     curl -s "${MIRROR}"/info 2> /dev/null || printWAR 'No server information provided.';
     curl -# "${MIRROR}"/copaports-${VERSION}.txz --output - | xz -cd - | tar -xvf - -C ${DBDIR};
@@ -171,18 +171,19 @@ fn_Update(){
 
 fn_ListPackages(){
   if [ -f "${CONTENTS}" ]; then
-    more "${CONTENTS}"
-    lines "${CONTENTS}"
-    exit 0
+    more "${CONTENTS}";
+    lines "${CONTENTS}";
+    exit 0;
   else
-    printERR 'Package list not found. Exit code is 140.'
-    exit 140
+    printERR 'Package list not found. Exit code is 140.';
+    exit 140;
   fi
 }
 
 fn_PackageInfo(){
-  PKGNM=${@};
-  . /var/otto/installed/pkg/OTTO"${PKG}"/pkginfo;
+  PKGNM=${1};
+  chdir `find ${DBDIR} -name "${PKGNM}"`;
+  . pkginfo;
   PKGCONTENT=`grep "${PKGNM}*" ${CONTENTS} | sed '1,/FILE LIST:/ d'`;
   FILES="`lines ${PKGCONTENT}`";
   printf '%s' "
@@ -195,8 +196,8 @@ BASEDIR:  ${BASEDIR}
 PRODUCTION STAMP:  ${PSTAMP}
 INSTALL DATE: ${INSTDATE}
 FILES AND FOLDERS: ${FILES} 
-"
-  return 0
+";
+  return 0;
 }
 
 fn_ProgramInfo(){ 
@@ -211,8 +212,8 @@ Copyright (c) MMXX Luiz Antonio Rangel, Caio Novais et Project Pindorama.
 See the CONTRIBUTORS file for more.
 
 ✠ GOTT MIT UNS ✠
-"
-  exit 0
+";
+  exit 0;
 }
 
 fn_Help(){
