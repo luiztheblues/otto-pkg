@@ -1,5 +1,5 @@
 #!/usr/bin/env ksh
-# shellcheck disable=SC1090,SC1091,SC2006,SC2059
+# shellcheck disable=SC1090,SC1091,SC2006,SC2059,SC2046,SC2155,SC2206,SC2086,SC2004
 
 # Otto-PKG - Ein Ports-ähnlicher Paketmanager.
 
@@ -124,7 +124,7 @@ fn_DownloadPackage(){
 		download_url_basename="${DOWNLOAD#*//}";
 		download_url_basename="${download_url_basename%%/*}";
 		printOK "Downloading ${PRGNAM} @ ${VERSION} (${download_url_basename}).";
-		curl -# -L	"${DOWNLOAD}" -O;
+		curl -# -L "${DOWNLOAD}" -O;
 	}
 	return 0;
 }
@@ -192,7 +192,7 @@ DESCRIPTION: ${DESC}
 CATEGORY: ${CATEGORY}
 ARCH: ${ARCH}
 VERSION: ${VERSION}
-BASEDIR:	${BASEDIR}
+BASEDIR: ${BASEDIR}
 PRODUCTION STAMP:  ${PSTAMP}
 INSTALL DATE: ${INSTDATE}
 FILES AND FOLDERS: ${FILES}
