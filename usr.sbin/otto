@@ -16,7 +16,7 @@
 
 # Program Specifications
 binary_name="`basename ${0}`"
-ausgabe='0.8'
+ausgabe='0.9'
 PKG_FORMT='.psl'
 HOST_OS="`uname -s`"
 LANG='POSIX'
@@ -31,7 +31,7 @@ alias chdir='cd';
 
 fn_CheckNetwork(){
   # ${MIRROR} is applyed only in packages officially created, unofficial packages probabily will use some custom domain.
-  printf '%s' 'Checking network connection';
+  printWAR 'Checking network connection';
   txtwait &
   if [ `printf '%s\n\n' "GET ${mirror_basename} HTTP/1.0" | netcat "${mirror_basename}" 80 > /dev/null 2>&1` ]; then
     printOK 'Mirror is up and running.';
@@ -50,10 +50,11 @@ fn_CheckParameters(){
 }
 
 fn_CheckDisk(){
+  PKGTAR="${1}";
   BENUTZT=`df -m / | tail -1 | grep '[0-9]' | awk '{print $3}'`;
   DSKVERF=`df -m / | tail -1 | grep '[0-9]' | awk '{print $4}'`;
   DSKGROSSE=$(( ${BENUTZT} + ${DSKVERF} ));
-  PKGGROSSE_FILE=`du -sk ${PKGDIR}/ | awk '{print $1}'`; # Tenho que botar o pacote .psl depois aqui.
+  PKGGROSSE_FILE=`du -sk "${PKGTAR}" | awk '{print $1}'`; # Tenho que botar o pacote .psl depois aqui.
   PKGGROSSE_CALC=`bc <<< "scale=3; ${PKGGROSSE_FILE}/1000"`;
   printf '%s' "\
 Estimated total disk space: ${DSKGROSSE}MB
@@ -71,22 +72,29 @@ fn_CheckDependencies(){
   local dependencies_index=(${@});
   local N_dependencies_index=`n ${dependencies_index[@]}`;
   local POINT='0';
-  for (( i=0; i < ${N_dependencies_index}; i++ )){
-    if [ "`grep -Fx "${DEP}" "${CONTENTS}" &> /dev/null`" ]; then
-      printOK "${DEP} is installed.";
+  if [ -z "${@}" ]; then # Only runs if we actually have dependencies. 
+    for (( i=0; i < "${N_dependencies_index}"; i++ )){
+      # Check if some of them are already installed:
+      if [ "`grep -Fx "${dependencies_index[${i}]}" "${CONTENTS}" &> /dev/null`" ]; then
+        printOK "${dependencies_index[${i}]} is installed.";
+      else
+        # Generate a new array containing dependencies to be installed.
+        dependency_array[${POINT}]="${dependencies_index[${i}]}";
+        POINT=$(( $POINT + 1 ));
+      fi
+    }
+    # If there's remaining dependencies, install them, else just quit the function.
+    if [ -z "${dependency_array[@]}" ]; then
+      printWAR 'Installing remaining dependencies now.'; 
+      fn_InstallPackage "${dependency_array[@]}";
     else
-      dependency_array[${POINT}]=${DEP};
-      POINT=$(( $POINT + 1 ));
+      printOK 'No extra dependencies to install.';
+      return 0;
     fi
-  }
-  if [ -z "${dependency_array[@]}" ]; then
-    printWAR 'Installing remaining dependencies now.'; 
-    fn_InstallPackage "${dependency_array[@]}";
   else
-    printOK 'No extra dependencies to install.';
+    return 0;
   fi
   unset dependencies_index N_dependencies_index dependency_array POINT;
-  return 0
 }
 
 # Sure i am, dad.
@@ -94,31 +102,46 @@ fn_CheckDependencies(){
 fn_AutoClean(){
   local TOCLEAN=(${TMPDIR} ${PKGDIR});
   local N_TOCLEAN=`n ${TOCLEAN[@]}`;
-  for (( i=0; i < ${N_TOCLEAN}; i++ )){
+  for (( i=0; i < "${N_TOCLEAN}"; i++ )){
     printWAR "Cleaning ${TOCLEAN[${i}]}.";
-    find ${TOCLEAN[${i}]} -not -path ${TOCLEAN[${i}]} -exec rm -rvf {} \;
+    find ${TOCLEAN[${i}]} -not -path "${TOCLEAN[${i}]}" -exec rm -rvf {} \;
   }
+  unset TOCLEAN N_TOCLEAN;
+  return 0;
+}
+
+fn_GenerateContents(){
+  find "${SRV4_CONTENTS}" > "${CONTENTS}";
   return 0;
 }
 
 fn_DownloadPackage(){
-  return 0
-}
-
-fn_Build(){
-  return 0
+  DOWNLOADS=(${DOWNLOAD});
+  n_DOWNLOADS=`n ${DOWNLOADS[@]}`;
+  # Just in case of some port having more than two URLs.
+  for (( i=0; i < "${n_DOWNLOADS}"; i++ )){
+    DOWNLOAD=${DOWNLOADS[${i}]};
+    download_url_basename="${DOWNLOAD#*//}";
+    download_url_basename="${download_url_basename%%/*}";
+    printOK "Downloading ${PRGNAM} @ ${VERSION} (${download_url_basename}).";
+    curl -# -L  "${DOWNLOAD}" -O;
+  }
+  return 0;
 }
 
 fn_InstallPackage(){
-  local N_STDIN=`n ${@}`
+  local n_AT=`n ${@}`
   printf "Packages to install: ${N_STDIN}\n"; 
-  for (( i = 0; i < "${N_STDIN}"; i++)){
+  for (( i=0; i < "${n_AT}"; i++)){
     local PKGNM=${@[${i}]};
     PKGBUILD_DIR=`find ${DBDIR} -name "${PKGNM}"`;
-    . ${PKGBUILD_DIR}/pkginfo
+    chdir "${PKGBUILD_DIR}" &&
+    . pkginfo;
     fn_CheckDependencies ${REQUIRES} &&
-    fn_Build &&
-    fn_CheckDisk &&
+    fn_DownloadPackage &&
+    sh "${PKGNM}".sh &&
+    fn_CheckDisk "${PKGDIR}/${PKGNM}-*-*-*_*.{psl,pkg}";
+    /sbin/installpkg "${PKGDIR}/${PKGNM}-*-*-*_*.{psl,pkg}"
   }
   return 0;
 }
@@ -133,7 +156,7 @@ fn_RemovePackage(){
 fn_Sync(){
   printf '%s\n' "Refreshing packages metadata \(${mirror_basename}\)..." ;
   if [ ${SYNC_TYPE} = HTTP ]; then
-    curl -s "${MIRROR}"/info.cgi 2> /dev/null || printWAR 'No server information provided.';
+    curl -s "${MIRROR}"/info 2> /dev/null || printWAR 'No server information provided.';
     curl -# "${MIRROR}"/copaports-${VERSION}.txz --output - | xz -cd - | tar -xvf - -C ${DBDIR};
   elif [ ${SYNC_TYPE} = 'GIT' ];
      git clone -v "${MIRROR}" -b "${VERSION}" "${DBDIR}"; 
@@ -194,7 +217,7 @@ See the CONTRIBUTORS file for more.
 
 fn_Help(){
   printf "\
-[USAGE]: otto -[i|v|r|d|b|u] <category>/<package> | package | -[N|H|I|l|f|S|?]
+[USAGE]: otto -[i|v|d|b|u] <package> | package | -[N|H|l|f|S|?]
 For more information about what each one of these flags mean, type 'man otto' in your Shell."
   exit 0
 }
@@ -205,20 +228,20 @@ findpkg(){
 }
 
 fn_main(){
-  OPTPARAMS="NHiIlfvd:b:u:S" 
+  OPTPARAMS="NHi:lfvd:b:u:S" 
   while getopts "${OPTPARAMS}" OPT; do
     case "${OPT}" in
-      "H") fn_Help ;;
-      "i") fn_PackageInfo ;;
-      "f") findpkg ;;
-      "v") export VERBOSE=1 ;;
+      "H") fn_Help;;
+      "i") fn_PackageInfo ${1};;
+      "f") findpkg;;
+      "v") export VERBOSE='1';;
       "d") fn_CheckParameters "${OPTARG}" && fn_InstallPackage "${OPTARG}" ;;
-      "b") fn_CheckParameters "${OPTARG}" && fn_RemovePackage "${OPTARG}" ;;
-      "S") fn_Checkroot && fn_Sync ;;
-      "u") fn_Checkroot && fn_Update "${OPTARG}" ;;
-      "l") fn_ListPackages ;;
-      "N") fn_CheckNetwork ;;
-      "?") fn_Help ;;
+      "b") fn_CheckParameters "${OPTARG}" && fn_Checkroot && fn_RemovePackage "${OPTARG}";;
+      "S") fn_Checkroot && fn_Sync;;
+      "u") fn_Checkroot && fn_Update "${OPTARG}";;
+      "l") fn_ListPackages;;
+      "N") fn_CheckNetwork;;
+      "?") fn_Help;;
     esac
   done
 }
