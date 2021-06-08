@@ -8,7 +8,7 @@ Eine Paketverwaltungs-Toolchain
 + Korn Shell;
 + cURL (if you use the 'HTTP' sync method);
 + Linus Torvalds' Git (if you use the 'GIT' sync method);
-+ tnftp (if you use the 'FTP' sync method);
++ tnftp (if you use the 'FTP' sync method) (not implemented yet);
 + `find`;
 + `bc`;
 + `sed`;
