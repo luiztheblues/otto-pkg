@@ -1,4 +1,4 @@
-#!/usr/bin/env ksh 
+#!/usr/bin/env ksh
 # shellcheck disable=SC1090,SC1091,SC2006,SC2059
 
 # Otto-PKG - Ein Ports-ähnlicher Paketmanager.
@@ -70,9 +70,9 @@ fn_CheckDependencies(){
   # I hope this don't become a non-intentional fork bomb, like recursive GNU auto*hell scripts.
   set -a dependency_array;
   local dependencies_index=(${@});
-  local N_dependencies_index=`n ${dependencies_index[@]}`;
+  local N_dependencies_index=`n "${dependencies_index[@]}"`;
   local POINT='0';
-  if [ -z "${@}" ]; then # Only runs if we actually have dependencies. 
+  if [ -z "${*}" ]; then # Only runs if we actually have dependencies.
     for (( i=0; i < "${N_dependencies_index}"; i++ )){
       # Check if some of them are already installed:
       if [ "`grep -Fx "${dependencies_index[${i}]}" "${CONTENTS}" &> /dev/null`" ]; then
@@ -84,8 +84,8 @@ fn_CheckDependencies(){
       fi
     }
     # If there's remaining dependencies, install them, else just quit the function.
-    if [ -z "${dependency_array[@]}" ]; then
-      printWAR 'Installing remaining dependencies now.'; 
+    if [ -z "${dependency_array[*]}" ]; then
+      printWAR 'Installing remaining dependencies now.';
       fn_InstallPackage "${dependency_array[@]}";
     else
       printOK 'No extra dependencies to install.';
@@ -101,7 +101,7 @@ fn_CheckDependencies(){
 
 fn_AutoClean(){
   local TOCLEAN=(${TMPDIR} ${PKGDIR});
-  local N_TOCLEAN=`n ${TOCLEAN[@]}`;
+  local N_TOCLEAN=`n "${TOCLEAN[@]}"`;
   for (( i=0; i < "${N_TOCLEAN}"; i++ )){
     printWAR "Cleaning ${TOCLEAN[${i}]}.";
     find ${TOCLEAN[${i}]} -not -path "${TOCLEAN[${i}]}" -exec rm -rvf {} \;
@@ -117,7 +117,7 @@ fn_GenerateContents(){
 
 fn_DownloadPackage(){
   DOWNLOADS=(${DOWNLOAD});
-  n_DOWNLOADS=`n ${DOWNLOADS[@]}`;
+  n_DOWNLOADS=`n "${DOWNLOADS[@]}"`;
   # Just in case of some port having more than two URLs.
   for (( i=0; i < "${n_DOWNLOADS}"; i++ )){
     DOWNLOAD=${DOWNLOADS[${i}]};
@@ -130,10 +130,10 @@ fn_DownloadPackage(){
 }
 
 fn_InstallPackage(){
-  local n_AT=`n ${@}`;
-  printf '%s\n' "Packages to install: ${n_AT}"; 
+  local n_AT=`n "${@}"`;
+  printf '%s\n' "Packages to install: ${n_AT}";
   for (( i=0; i < "${n_AT}"; i++)){
-    local PKGNM=${@[${i}]};
+    local PKGNM=${*[${i}]};
     PKGBUILD_DIR=`find ${DBDIR} -name "${PKGNM}"`;
     chdir "${PKGBUILD_DIR}" &&
     . pkginfo;
@@ -147,9 +147,9 @@ fn_InstallPackage(){
 }
 
 fn_RemovePackage(){
-  local n_AT=`n ${@}`;
+  local n_AT=`n "${@}"`;
   printf "Packages to remove: ${n_AT}\n";
-  /sbin/removepkg ${@}; 
+  /sbin/removepkg "${@}";
   return 0;
 }
 
@@ -158,8 +158,8 @@ fn_Sync(){
   if [ ${SYNC_TYPE} = HTTP ]; then
     curl -s "${MIRROR}"/info 2> /dev/null || printWAR 'No server information provided.';
     curl -# "${MIRROR}"/copaports-${VERSION}.txz --output - | xz -cd - | tar -xvf - -C ${DBDIR};
-  elif [ ${SYNC_TYPE} = 'GIT' ];
-     git clone -v "${MIRROR}" -b "${VERSION}" "${DBDIR}"; 
+  elif [ ${SYNC_TYPE} = 'GIT' ]; then
+     git clone -v "${MIRROR}" -b "${VERSION}" "${DBDIR}";
   fi
   printOK "Package index updated \(`date '+%Y.%m.%d @ %H:%M:%S'`\).";
   return 0;
@@ -188,19 +188,19 @@ fn_PackageInfo(){
   FILES="`lines ${PKGCONTENT}`";
   printf '%s' "
 PACKAGE: ${PKG}
-DESCRIPTION: ${DESC}  
+DESCRIPTION: ${DESC}
 CATEGORY: ${CATEGORY}
 ARCH: ${ARCH}
 VERSION: ${VERSION}
 BASEDIR:  ${BASEDIR}
 PRODUCTION STAMP:  ${PSTAMP}
 INSTALL DATE: ${INSTDATE}
-FILES AND FOLDERS: ${FILES} 
+FILES AND FOLDERS: ${FILES}
 ";
   return 0;
 }
 
-fn_ProgramInfo(){ 
+fn_ProgramInfo(){
   printf '%s' "\
 ${BOLD}Otto, eine Paketverwaltungs-Toolchain.$END
 Ausgabe: ${ausgabe}
@@ -229,12 +229,12 @@ findpkg(){
 }
 
 fn_main(){
-  OPTPARAMS="NHi:lfvd:b:u:S" 
+  OPTPARAMS="NHi:lfvd:b:u:S"
   while getopts "${OPTPARAMS}" OPT; do
     case "${OPT}" in
       "H") fn_Help;;
       "i") fn_PackageInfo ${1};;
-      "f") findpkg;;
+      "f") findpkg ${1};;
       "v") export VERBOSE='1';;
       "d") fn_CheckParameters "${OPTARG}" && fn_InstallPackage "${OPTARG}" ;;
       "b") fn_CheckParameters "${OPTARG}" && fn_Checkroot && fn_RemovePackage "${OPTARG}";;
@@ -247,4 +247,4 @@ fn_main(){
   done
 }
 
-fn_main ${@}
+fn_main "${@}"
