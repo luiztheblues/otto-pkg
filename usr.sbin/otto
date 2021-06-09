@@ -139,10 +139,11 @@ fn_InstallPackage(){
 		. pkginfo;
 		fn_CheckDependencies ${REQUIRES} &&
 		fn_DownloadPackage &&
-		sh "${PKGNM}".sh &&
-		fn_CheckDisk "${PKGDIR}/${PKGNM}-*-*-*_*.{psl,pkg}";
-		/sbin/installpkg "${PKGDIR}/${PKGNM}-*-*-*_*.{psl,pkg}"
-	}
+		sh pkgbuild &&
+		fn_CheckDisk "${PKGDIR}/${PKGNM}-*-*-*_*.{psl}";
+		/sbin/installpkg "${PKGDIR}/${PKGNM}-*-*-*_*.{psl}";
+    fn_GenerateContents;
+  }
 	return 0;
 }
 
@@ -192,9 +193,7 @@ DESCRIPTION: ${DESC}
 CATEGORY: ${CATEGORY}
 ARCH: ${ARCH}
 VERSION: ${VERSION}
-BASEDIR: ${BASEDIR}
 PRODUCTION STAMP:  ${PSTAMP}
-INSTALL DATE: ${INSTDATE}
 FILES AND FOLDERS: ${FILES}
 ";
 	return 0;
