@@ -1,8 +1,10 @@
-# Author:
-Luiz Antônio Rangel (luiztheblues).
+# Authors:
+Luiz Antônio Rangel (takusuman).
+Caio Novais (Chexier);
 
 # Contributors:
 Caio Novais (Chexier);
+JazzMan;
 Sávio (SavioHamrick).
 
 # Forked code (on libaries):
