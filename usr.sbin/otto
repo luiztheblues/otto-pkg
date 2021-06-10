@@ -12,6 +12,7 @@
 . /usr/lib/otto/colors.shi
 . /usr/lib/otto/blink.shi
 . /usr/lib/otto/txtwait.shi
+. /usr/lib/otto/txtsatz.shi
 . /usr/lib/otto/posix-alt.shi
 
 # Program Specifications
@@ -237,9 +238,9 @@ fn_main(){
 			"f") findpkg ${1};;
 			"v") export VERBOSE='1';;
 			"d") fn_CheckParameters "${OPTARG}" && fn_InstallPackage "${OPTARG}" ;;
-			"b") fn_CheckParameters "${OPTARG}" && fn_Checkroot && fn_RemovePackage "${OPTARG}";;
-			"S") fn_Checkroot && fn_Sync;;
-			"u") fn_Checkroot && fn_Update "${OPTARG}";;
+			"b") fn_CheckParameters "${OPTARG}" && fn_RemovePackage "${OPTARG}";;
+			"S") fn_Sync;;
+			"u") fn_Update "${OPTARG}";;
 			"l") fn_ListPackages;;
 			"N") fn_CheckNetwork;;
 			"?") fn_Help;;
