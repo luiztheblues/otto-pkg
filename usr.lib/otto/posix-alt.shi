@@ -1,8 +1,8 @@
 # posix-alt.shi: POSIX shell alternatives for external processes, in a single libary.
 # Copyright:
-# lines() added by Caio Novais <caionov08@gmail.com>, but originally it's came from Dylan Araps' pure-sh-bible (and yeah, i didn't knew this);
+# lines() added by Caio Novais <caionov08@gmail.com>, but originally it's came from Dylan Araps' pure-sh-bible;
 # basename() (and already cited lines()) by Dylan Araps <https://github.com/dylanaraps> @ pure-sh-bible.
-# ptimeout(), pcat() and nproc() by Luiz Antônio Rangel <luiz.antonio.rangel@bol.com.br> @ otto-pkg.
+# ptimeout(), pcat(), nproc() and n() by Luiz Antônio Rangel <luiz.antonio.rangel@outlook.com.br> @ otto-pkg.
 # Everything here (except what was added @ otto-pkg) was originally in MIT License, now sublicensed to Caldera/4-Clause BSD license (see LICENSE.txt).
 
 # basename
@@ -38,7 +38,7 @@ nproc(){
   grep 'processor' /proc/cpuinfo | lines
 }
 
-# The # macro.
+# The # macro for arrays.
 n(){
   echo ${@} | tr '' '\n' | wc -l;
 }
