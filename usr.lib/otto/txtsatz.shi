@@ -9,11 +9,11 @@ export INVERT='\033[7m'
 export END='\033[m'
 
 printERR(){
-  printf '%b\n' "${RED}* ERROR${END}: ${@}"
+	printf '%b\n' "${RED}* ERROR${END}: ${@}"
 }
 printWAR(){
-  printf '%b\n' "${YELLOW}* WARNING${END}: ${@}"
+	printf '%b\n' "${YELLOW}* WARNING${END}: ${@}"
 }
 printOK(){
-  printf '%b\n' "${GREEN}* O.K.${END}: ${@}"
+	printf '%b\n' "${GREEN}* O.K.${END}: ${@}"
 }

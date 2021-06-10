@@ -132,8 +132,8 @@ fn_DownloadPackage(){
 }
 
 fn_InstallPackage(){
-  local AT=(${@});
-  local n_AT=`n "${AT[@]}"`;
+	local AT=(${@});
+	local n_AT=`n "${AT[@]}"`;
 	printf '%s\n' "Packages to install: ${n_AT}";
 	for (( i=0; i < "${n_AT}"; i++)){
 		local PKGNM=${AT[${i}]};
@@ -143,16 +143,16 @@ fn_InstallPackage(){
 		fn_CheckDependencies ${REQUIRES} &&
 		fn_DownloadPackage &&
 		sh pkgbuild &&
-    fn_CheckDisk "${PKGDIR}/${PKGNM}-*-*-*_*.psl";
+		fn_CheckDisk "${PKGDIR}/${PKGNM}-*-*-*_*.psl";
 		/sbin/installpkg "${PKGDIR}/${PKGNM}-*-*-*_*.psl";
-    fn_GenerateContents;
-  }
+		fn_GenerateContents;
+	}
 	return 0;
 }
 
 fn_RemovePackage(){
-  local AT=(${@});
-  local n_AT=`n "${AT[@]}"`;
+	local AT=(${@});
+	local n_AT=`n "${AT[@]}"`;
 	printf "Packages to remove: ${n_AT}\n";
 	/sbin/removepkg "${AT[@]}";
 	return 0;
@@ -197,7 +197,7 @@ DESCRIPTION: ${DESC}
 CATEGORY: ${CATEGORY}
 ARCH: ${ARCH}
 VERSION: ${VERSION}
-PRODUCTION STAMP:  ${PSTAMP}
+PRODUCTION STAMP: ${PSTAMP}
 FILES AND FOLDERS: ${FILES}
 ";
 	return 0;

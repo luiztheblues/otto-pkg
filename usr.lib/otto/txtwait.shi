@@ -6,10 +6,10 @@ PID=$!;
 export s PID;
 
 txtwait(){
-  for ((;;)){ 
-    for (( i = 0; i < 3; i ++ )){
-      printf '\r%s' ${s[${i}]};
-      sleep 0.3;
-    }
-  }
+	for ((;;)){
+		for (( i = 0; i < 3; i ++ )){
+			printf '\r%s' ${s[${i}]};
+			sleep 0.3;
+		}
+	}
 }

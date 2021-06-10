@@ -7,40 +7,40 @@
 
 # basename
 basename(){
-  DIR=${1%${1##*[!/]}}
-  DIR=${DIR##*/}
-  DIR=${DIR%"$2"}
-  printf '%s\n' "${DIR:-/}"
+	DIR=${1%${1##*[!/]}}
+	DIR=${DIR##*/}
+	DIR=${DIR%"$2"}
+	printf '%s\n' "${DIR:-/}"
 }
 
 # wc -l
 lines(){
-  while IFS= read -r LINE || [ -n "${LINE}" ]; do
-    LINES=$[ ${LINES} + 1 ]
-  done < "${1}"
-  printf '%s\n' "$LINES"
-  unset LINES
+	while IFS= read -r LINE || [ -n "${LINE}" ]; do
+		LINES=$[ ${LINES} + 1 ]
+	done < "${1}"
+	printf '%s\n' "$LINES"
+	unset LINES
 }
 
 # cat
 # In fact, this isn't really POSIX-friendly.
 pcat(){
-  < ${@}
+	< ${@}
 }
 
 # timeout
 timeout(){
-  "${2}" & local PID="${!}"; sleep "${1}" && kill "${PID}"
+	"${2}" & local PID="${!}"; sleep "${1}" && kill "${PID}"
 }
 
 # nproc
 nproc(){
-  grep 'processor' /proc/cpuinfo | lines
+	grep 'processor' /proc/cpuinfo | lines
 }
 
 # The # macro for arrays.
 n(){
-  echo ${@} | tr '' '\n' | wc -l;
+	echo ${@} | tr '' '\n' | wc -l;
 }
 
 ##End of alternatives section
