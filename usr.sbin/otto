@@ -56,7 +56,7 @@ fn_CheckDisk(){
 	BENUTZT=`df -m / | tail -1 | grep '[0-9]' | awk '{print $3}'`;
 	DSKVERF=`df -m / | tail -1 | grep '[0-9]' | awk '{print $4}'`;
 	DSKGROSSE=$(( ${BENUTZT} + ${DSKVERF} ));
-	PKGGROSSE_FILE=`du -sk "${PKGTAR}" | awk '{print $1}'`; # Tenho que botar o pacote .psl depois aqui.
+	PKGGROSSE_FILE=`du -sk ${PKGTAR} | awk '{print $1}'`;
 	PKGGROSSE_CALC=`bc <<< "scale=3; ${PKGGROSSE_FILE}/1000"`;
 	printf '%s' "\
 Estimated total disk space: ${DSKGROSSE}MB
@@ -113,7 +113,7 @@ fn_AutoClean(){
 }
 
 fn_GenerateContents(){
-	find "${SRV4_CONTENTS}" > "${CONTENTS}";
+	find "${SRV4_CONTENTS}" -exec basename {} \; > "${CONTENTS}";
 	return 0;
 }
 
@@ -132,27 +132,29 @@ fn_DownloadPackage(){
 }
 
 fn_InstallPackage(){
-	local n_AT=`n "${@}"`;
+  local AT=(${@});
+  local n_AT=`n "${AT[@]}"`;
 	printf '%s\n' "Packages to install: ${n_AT}";
 	for (( i=0; i < "${n_AT}"; i++)){
-		local PKGNM=${*[${i}]};
+		local PKGNM=${AT[${i}]};
 		PKGBUILD_DIR=`find ${DBDIR} -name "${PKGNM}"`;
 		chdir "${PKGBUILD_DIR}" &&
 		. pkginfo;
 		fn_CheckDependencies ${REQUIRES} &&
 		fn_DownloadPackage &&
 		sh pkgbuild &&
-		fn_CheckDisk "${PKGDIR}/${PKGNM}-*-*-*_*.{psl}";
-		/sbin/installpkg "${PKGDIR}/${PKGNM}-*-*-*_*.{psl}";
+    fn_CheckDisk "${PKGDIR}/${PKGNM}-*-*-*_*.psl";
+		/sbin/installpkg "${PKGDIR}/${PKGNM}-*-*-*_*.psl";
     fn_GenerateContents;
   }
 	return 0;
 }
 
 fn_RemovePackage(){
-	local n_AT=`n "${@}"`;
+  local AT=(${@});
+  local n_AT=`n "${AT[@]}"`;
 	printf "Packages to remove: ${n_AT}\n";
-	/sbin/removepkg "${@}";
+	/sbin/removepkg "${AT[@]}";
 	return 0;
 }
 
