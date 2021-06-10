@@ -21,7 +21,8 @@ PKG_FORMT='.psl'
 HOST_OS="`uname -s`"
 LANG='POSIX'
 LC_ALL="${LANG}"
-mirror_basename=${${MIRROR#*//}%%/*}
+mirror_basename=${MIRROR#*//}
+mirror_basename=${mirror_basename%%/*}
 export binary_name ausgabe PKG_FORMT PKG_COMPSS HOST_OS LANG LC_ALL mirror_basename;
 
 # Export alias
