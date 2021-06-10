@@ -1,11 +1,15 @@
 # txtwait.shi: Loading animation libary for Shell Script.
 # Fork of txtampel.shi function by Luiz Antônio @ otto-pkg.
 # Actually, it's txtampel.shi with slight changes.
-s=( '/' '-' '\' '|' )
-export PID=$!
-for ((;;)){ 
-  for (( i = 0; i < 3; i ++ )){
-    printf '\r%s' ${s[${i}]};
-    sleep 0.3;
+s=( '/' '-' '\' '|' );
+PID=$!;
+export s PID;
+
+txtwait(){
+  for ((;;)){ 
+    for (( i = 0; i < 3; i ++ )){
+      printf '\r%s' ${s[${i}]};
+      sleep 0.3;
+    }
   }
 }
