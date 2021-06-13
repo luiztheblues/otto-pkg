@@ -70,7 +70,7 @@ Estimated free space: `bc <<< "scale=3; ${DSKVERF} - ${PKGGROSSE_CALC}"`MB
 
 fn_CheckDependencies(){
 	# I hope this don't become a non-intentional fork bomb, like recursive GNU auto*hell scripts.
-	set -a dependency_array;
+	local dependency_array=();
 	local dependencies_index=(${@});
 	local N_dependencies_index=`n "${dependencies_index[@]}"`;
 	local POINT='0';
@@ -143,8 +143,8 @@ fn_InstallPackage(){
 		fn_CheckDependencies ${REQUIRES} &&
 		fn_DownloadPackage &&
 		sh pkgbuild &&
-		fn_CheckDisk "${PKGDIR}/${PKGNM}-*-*-*_*.psl";
-		/sbin/installpkg "${PKGDIR}/${PKGNM}-*-*-*_*.psl";
+		fn_CheckDisk "${PKGDIR}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}_OTTO.${PKGTYPE:-psl}";
+		/sbin/installpkg "${PKGDIR}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}_OTTO.${PKGTYPE:-psl}" &&
 		fn_GenerateContents;
 	}
 	return 0;
