@@ -70,11 +70,11 @@ Estimated free space: `bc <<< "scale=3; ${DSKVERF} - ${PKGGROSSE_CALC}"`MB
 
 fn_CheckDependencies(){
 	# I hope this don't become a non-intentional fork bomb, like recursive GNU auto*hell scripts.
-	local dependency_array=();
-	local dependencies_index=(${@});
-	local N_dependencies_index=`n "${dependencies_index[@]}"`;
-	local POINT='0';
-	if [ -z "${*}" ]; then # Only runs if we actually have dependencies.
+	dependency_array=();
+	dependencies_index=(${@});
+	N_dependencies_index=`n "${dependencies_index[*]}"`;
+	POINT='0';
+	if [ -e "${*}" ]; then # Only runs if we actually have dependencies.
 		for (( i=0; i < "${N_dependencies_index}"; i++ )){
 			# Check if some of them are already installed:
 			if [ "`grep -Fx "${dependencies_index[${i}]}" "${CONTENTS}" &> /dev/null`" ]; then
@@ -132,21 +132,22 @@ fn_DownloadPackage(){
 }
 
 fn_InstallPackage(){
-	local AT=(${@});
-	local n_AT=`n "${AT[@]}"`;
+	AT=(${@});
+	n_AT=`n "${AT[@]}"`;
 	printf '%s\n' "Packages to install: ${n_AT}";
 	for (( i=0; i < "${n_AT}"; i++)){
 		local PKGNM=${AT[${i}]};
-		PKGBUILD_DIR=`find ${DBDIR} -name "${PKGNM}"`;
-		chdir "${PKGBUILD_DIR}" &&
-		. pkginfo;
+		PORT=`find ${DBDIR} -name "${PKGNM}"`;
+		chdir "${PORT}";		
+		. "${PORT}"/pkginfo &&
 		fn_CheckDependencies ${REQUIRES} &&
 		fn_DownloadPackage &&
 		sh pkgbuild &&
-		fn_CheckDisk "${PKGDIR}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}_OTTO.${PKGTYPE:-psl}";
-		/sbin/installpkg "${PKGDIR}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}_OTTO.${PKGTYPE:-psl}" &&
+		fn_CheckDisk "${PKGDIR}/${PRGNAM}-${VERSION}-*-*_OTTO.${PKGTYPE:-psl}";
+		/sbin/installpkg "${PKGDIR}/${PRGNAM}-${VERSION}-*-*_OTTO.${PKGTYPE:-psl}" &&
 		fn_GenerateContents;
 	}
+	fn_AutoClean;
 	return 0;
 }
 
@@ -159,14 +160,14 @@ fn_RemovePackage(){
 }
 
 fn_Sync(){
-	printWAR "Refreshing packages metadata \(${mirror_basename}\)..." ;
+	printWAR "Refreshing packages metadata (${mirror_basename})..." ;
 	if [ ${SYNC_TYPE} = HTTP ]; then
 		curl -s "${MIRROR}"/info 2> /dev/null || printWAR 'No server information provided.';
 		curl -# "${MIRROR}"/copaports-${VERSION}.txz --output - | xz -cd - | tar -xvf - -C ${DBDIR};
 	elif [ ${SYNC_TYPE} = 'GIT' ]; then
 		 git clone -v "${MIRROR}" -b "${VERSION}" "${DBDIR}";
 	fi
-	printOK "Package index updated \(`date '+%Y.%m.%d @ %H:%M:%S'`\).";
+	printOK "Package index updated (`date '+%Y.%m.%d @ %H:%M:%S'`).";
 	return 0;
 }
 
@@ -187,8 +188,8 @@ fn_ListPackages(){
 
 fn_PackageInfo(){
 	PKGNM=${1};
-	chdir `find ${DBDIR} -name "${PKGNM}"`;
-	. pkginfo;
+	PORT=`find ${DBDIR} -name "${PKGNM}"`;
+	. ${PORT}/pkginfo;
 	PKGCONTENT=`grep "${PKGNM}*" ${CONTENTS} | sed '1,/FILE LIST:/ d'`;
 	FILES="`lines ${PKGCONTENT}`";
 	printf '%s' "
@@ -226,21 +227,21 @@ For more information about what each one of these flags mean, type 'man otto' in
 	exit 0
 }
 
-findpkg(){
+querypkg(){
 	find ${DBDIR} -name "${@}";
 	return 0;
 }
 
 fn_main(){
-	OPTPARAMS="NHi:lfvd:b:u:S"
+	OPTPARAMS="NHi:lqvd:b:u:S"
 	while getopts "${OPTPARAMS}" OPT; do
 		case "${OPT}" in
 			"H") fn_Help;;
-			"i") fn_PackageInfo ${1};;
-			"f") findpkg ${1};;
+			"i") shift; fn_PackageInfo ${1};;
+			"q") shift; querypkg ${1};;
 			"v") export VERBOSE='1';;
-			"d") fn_CheckParameters "${OPTARG}" && fn_InstallPackage "${OPTARG}" ;;
-			"b") fn_CheckParameters "${OPTARG}" && fn_RemovePackage "${OPTARG}";;
+			"d") shift; fn_CheckParameters "${OPTARG}" && fn_InstallPackage "${OPTARG}" ;;
+			"b") shift; fn_CheckParameters "${OPTARG}" && fn_RemovePackage "${OPTARG}";;
 			"S") fn_Sync;;
 			"u") fn_Update "${OPTARG}";;
 			"l") fn_ListPackages;;
